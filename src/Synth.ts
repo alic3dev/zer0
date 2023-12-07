@@ -140,10 +140,35 @@ export class Synth {
       this.savePreset()
     }
   }
-    if (this.#status === "configured") {
-      this.#preset.gain.curve = this.#gainCurve;
-      this.savePreset();
+
+  modifyOscillator(
+    oscillatorOrIndex: Oscillator | number,
+    action: { type?: OscillatorType; volume?: number; offset?: number },
+  ): void {
+    const oscillatorIndex = this.oscillators.findIndex(
+      (oscillator, oscillatorIndex) =>
+        oscillator === oscillatorOrIndex ||
+        oscillatorIndex === oscillatorOrIndex,
+    )
+
+    if (oscillatorIndex === -1) return
+
+    if (action.type) {
+      this.oscillators[oscillatorIndex].type = action.type
+      this.#preset.oscillators[oscillatorIndex].type = action.type
     }
+
+    if (Object.hasOwnProperty.call(action, 'volume')) {
+      this.oscillators[oscillatorIndex].gain.gain.value = action.volume!
+      this.#preset.oscillators[oscillatorIndex].volume = action.volume
+    }
+
+    if (Object.hasOwnProperty.call(action, 'offset')) {
+      this.oscillators[oscillatorIndex].frequency.value = action.offset!
+      this.#preset.oscillators[oscillatorIndex].offset = action.offset
+    }
+
+    this.savePreset()
   }
 
   removeOscillator(oscillatorOrIndex: Oscillator | number): void {
