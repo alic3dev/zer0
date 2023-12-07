@@ -1,20 +1,20 @@
 export class Noise {
-  audioContext: AudioContext;
-  output: AudioNode;
+  readonly audioContext: AudioContext
+  readonly output: AudioNode
 
   constructor(
     audioContext: AudioContext,
-    output: AudioNode = audioContext.destination
+    output: AudioNode = audioContext.destination,
   ) {
-    this.audioContext = audioContext;
-    this.output = output;
+    this.audioContext = audioContext
+    this.output = output
 
     // Create an empty three-second stereo buffer at the sample rate of the AudioContext
     const myArrayBuffer: AudioBuffer = this.audioContext.createBuffer(
       2,
       this.audioContext.sampleRate * 3,
-      this.audioContext.sampleRate
-    );
+      this.audioContext.sampleRate,
+    )
 
     // Fill the buffer with white noise;
     // just random values between -1.0 and 1.0
@@ -24,29 +24,28 @@ export class Noise {
       channel++
     ) {
       // This gives us the actual ArrayBuffer that contains the data
-      const nowBuffering: Float32Array = myArrayBuffer.getChannelData(channel);
+      const nowBuffering: Float32Array = myArrayBuffer.getChannelData(channel)
 
       for (let i: number = 0; i < myArrayBuffer.length; i++) {
         // Math.random() is in [0; 2.0]
         // audio needs to be in [-1.0; 1.0]
-        nowBuffering[i] = Math.random() * 2 - 1;
+        nowBuffering[i] = Math.random() * 2 - 1
       }
     }
 
     // Get an AudioBufferSourceNode.
     // This is the AudioNode to use when we want to play an AudioBuffer
-    const source: AudioBufferSourceNode =
-      this.audioContext.createBufferSource();
+    const source: AudioBufferSourceNode = this.audioContext.createBufferSource()
 
     // set the buffer in the AudioBufferSourceNode
-    source.buffer = myArrayBuffer;
-    source.loop = true;
+    source.buffer = myArrayBuffer
+    source.loop = true
 
     // connect the AudioBufferSourceNode to the
     // destination so we can hear the sound
-    source.connect(this.output);
+    source.connect(this.output)
 
     // start the source playing
-    source.start();
+    source.start()
   }
 }

@@ -1,1 +1,1 @@
-export { DelayReverb } from "./DelayReverb";
+export { DelayReverb } from './DelayReverb'

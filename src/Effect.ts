@@ -1,19 +1,20 @@
 export class Effect {
-  audioContext: AudioContext;
-  input: AudioNode;
-  output: AudioNode;
+  readonly audioContext: AudioContext
+  readonly input: AudioNode
+
+  output: AudioNode
 
   constructor(
     audioContext: AudioContext,
     input: AudioNode,
-    output: AudioNode = audioContext.destination
+    output: AudioNode = audioContext.destination,
   ) {
-    this.audioContext = audioContext;
-    this.input = input;
-    this.output = output;
+    this.audioContext = audioContext
+    this.input = input
+    this.output = output
   }
 
   connect(output: AudioNode) {
-    this.output = output;
+    this.output = output
   }
 }
