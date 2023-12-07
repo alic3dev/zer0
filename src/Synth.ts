@@ -1,13 +1,15 @@
+import { Oscillator } from "./Oscillator";
 import { SynthPreset, SynthPresetValues } from "./SynthPreset";
 
 const PRESET_LOCAL_STORAGE_PREFIX: string = "ゼロ：プレセト：";
 
 export class Synth {
-  audioContext: AudioContext;
-  output: AudioNode;
-  gain: GainNode;
-  oscillators: OscillatorNode[] = [];
-  frequencyConstantSourceNode: ConstantSourceNode;
+  readonly audioContext: AudioContext;
+  readonly output: AudioNode;
+  readonly gain: GainNode;
+  readonly oscillators: Oscillator[] = [];
+  readonly frequencyConstantSourceNode: ConstantSourceNode;
+
   #syncBPM: boolean = true;
   #bpm: number = 90;
   #hold: number = 0.9;
@@ -139,28 +141,40 @@ export class Synth {
     }
   }
 
+  removeOscillator(oscillatorOrIndex: Oscillator | number): void {
+    const oscillatorToRemoveIndex = this.oscillators.findIndex(
+      (oscillator, oscillatorIndex) =>
+        oscillator === oscillatorOrIndex ||
+        oscillatorIndex === oscillatorOrIndex
+    );
+
+    if (oscillatorToRemoveIndex === -1) return;
+
+    this.frequencyConstantSourceNode.disconnect(
+      this.oscillators[oscillatorToRemoveIndex].frequency
+    );
+    this.oscillators[oscillatorToRemoveIndex].stop();
+
+    this.oscillators.splice(oscillatorToRemoveIndex, 1);
+
+    if (this.#status === "configured") {
+      this.#preset.oscillators.splice(oscillatorToRemoveIndex, 1);
+      this.savePreset();
+    }
+  }
+
   addOscillator(
     type: OscillatorType = "sine",
     volume = 1.0,
     offset = 0.0
   ): void {
-    const oscillator = this.audioContext.createOscillator();
-    oscillator.type = type;
-
-    if (volume === 1.0) {
-      oscillator.connect(this.gain);
-    } else {
-      const oscillatorGain = this.audioContext.createGain();
-      oscillatorGain.gain.value = volume;
-      oscillatorGain.connect(this.gain);
-      oscillator.connect(oscillatorGain);
-    }
-
-    oscillator.frequency.value = offset;
+    const oscillator = new Oscillator(
+      this.audioContext,
+      { type, volume, offset },
+      this.gain
+    );
 
     this.frequencyConstantSourceNode.connect(oscillator.frequency);
-
-    oscillator.start();
 
     this.oscillators.push(oscillator);
 
