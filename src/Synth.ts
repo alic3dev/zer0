@@ -10,14 +10,30 @@ export class Synth {
   readonly oscillators: Oscillator[] = []
   readonly frequencyConstantSourceNode: ConstantSourceNode
 
-  #syncBPM: boolean = true
-  #bpm: number = 90
-  #hold: number = 0.9
-  #portamento: number = 0
-  #gainCurve: number[] = [0, 1, 1, 0.75, 0.25, 0]
-  name: string = 'Basic'
-
   #status: 'configured' | 'configuring' = 'configuring'
+
+  static readonly defaults: {
+    syncBPM: boolean
+    bpm: number
+    hold: number
+    portamento: number
+    gainCurve: number[]
+    name: string
+  } = {
+    syncBPM: true,
+    bpm: 90,
+    hold: 0.9,
+    portamento: 0,
+    gainCurve: [0, 1, 1, 0.75, 0.25, 0],
+    name: 'Basic',
+  }
+
+  #syncBPM: boolean = Synth.defaults.syncBPM
+  #bpm: number = Synth.defaults.bpm
+  #hold: number = Synth.defaults.hold
+  #portamento: number = Synth.defaults.portamento
+  #gainCurve: number[] = Synth.defaults.gainCurve
+  name: string = Synth.defaults.name
 
   #preset: SynthPreset
   #getDefaultPreset(): SynthPresetValues {
