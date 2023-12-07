@@ -196,7 +196,7 @@ export class Synth {
     )
     this.frequencyConstantSourceNode.offset.exponentialRampToValueAtTime(
       frequency,
-      this.audioContext.currentTime + 0.01 + this.#portamento,
+      this.audioContext.currentTime + (60 * this.#portamento) / this.#bpm,
     )
 
     this.gain.gain.cancelScheduledValues(this.audioContext.currentTime)
