@@ -7,12 +7,11 @@ export { SampleKit } from './src/SampleKit'
 export { Synth } from './src/Synth'
 
 import { Octave, Note, utils } from './src/utils'
-
-import { reverb } from './src/effects'
-
-export const effects = {
-  reverb,
-}
-
 export type { Octave, Note }
 export { utils }
+
+import { filter, reverb } from './src/effects'
+export const effects = {
+  filter,
+  reverb,
+}

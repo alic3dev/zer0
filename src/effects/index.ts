@@ -1,7 +1,12 @@
-import { DelayReverb } from './reverb/DelayReverb'
+import { BiquadFilter, IIRFilter } from './filter'
+export const filter = {
+  BiquadFilter,
+  IIRFilter,
+}
 
-export { DelayReverb }
-
+import { DelayReverb } from './reverb'
 export const reverb = {
   DelayReverb,
 }
+
+export { DelayReverb }
