@@ -230,27 +230,23 @@ export class Synth {
     }
   }
 
-  playNote(frequency: number): void {
-    // this.frequencyConstantSourceNode.offset.value = frequency;
-    this.frequencyConstantSourceNode.offset.cancelScheduledValues(
-      this.audioContext.currentTime,
-    )
-    this.frequencyConstantSourceNode.offset.exponentialRampToValueAtTime(
+  playNote(frequency: number, offset: number = 0, duration: number = 1): void {
+    const timeToPlay: number =
+      this.audioContext.currentTime + offset * (60 / this.#bpm)
+
+    this.frequencyConstantSourceNode.offset.cancelScheduledValues(timeToPlay)
+    this.frequencyConstantSourceNode.offset.setTargetAtTime(
       frequency,
-      this.audioContext.currentTime + (60 * this.#portamento) / this.#bpm,
+      timeToPlay,
+      ((60 * this.#portamento) / this.#bpm) * duration,
     )
 
-    this.gain.gain.cancelScheduledValues(this.audioContext.currentTime)
+    this.gain.gain.cancelScheduledValues(timeToPlay)
     this.gain.gain.setValueCurveAtTime(
       this.#gainCurve,
-      this.audioContext.currentTime,
-      (60 * this.#hold) / this.#bpm,
+      timeToPlay,
+      ((60 * this.#hold) / this.#bpm) * duration,
     )
-    // this.gain.gain.value = 1;
-    // this.gain.gain.linearRampToValueAtTime(
-    //   0,
-    //   this.audioContext.currentTime + 1
-    // );
   }
 
   #configure(): void {
