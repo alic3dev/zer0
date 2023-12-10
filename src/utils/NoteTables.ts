@@ -31,6 +31,12 @@ export type Octave = {
   [note in Note]: number
 }
 
+export const frequencyRoots: Record<string, number> = {
+  standard: 440,
+  magic: 432,
+  scientific: 430.54,
+}
+
 export function createNoteTable(
   startingOctave: number = 0,
   endingOctave: number = 10,

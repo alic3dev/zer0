@@ -1,4 +1,10 @@
-import { Note, Octave, createNoteTable, notes } from './NoteTables'
+import {
+  Note,
+  Octave,
+  createNoteTable,
+  notes,
+  frequencyRoots,
+} from './NoteTables'
 import { scales, getScaleInKey } from './Scales'
 
 export type { Note }
@@ -8,5 +14,6 @@ export const utils = {
   createNoteTable,
   notes,
   scales,
+  frequencyRoots,
   getScaleInKey,
 }
