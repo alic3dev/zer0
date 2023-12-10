@@ -19,6 +19,7 @@ export class Synth {
     portamento: number
     gainCurve: number[]
     name: string
+    id: string
   } = {
     syncBPM: true,
     bpm: 90,
@@ -26,6 +27,7 @@ export class Synth {
     portamento: 0,
     gainCurve: [0, 1, 1, 0.75, 0.25, 0],
     name: 'Basic',
+    id: crypto.randomUUID(),
   }
 
   #syncBPM: boolean = Synth.defaults.syncBPM
@@ -34,6 +36,7 @@ export class Synth {
   #portamento: number = Synth.defaults.portamento
   #gainCurve: number[] = Synth.defaults.gainCurve
   name: string = Synth.defaults.name
+  id: string = Synth.defaults.id
 
   #preset: SynthPreset
   #getDefaultPreset(): SynthPresetValues {
