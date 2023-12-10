@@ -1,6 +1,6 @@
 export class Effect {
   readonly audioContext: AudioContext
-  readonly input: AudioNode
+  input: AudioNode
 
   output: AudioNode
 

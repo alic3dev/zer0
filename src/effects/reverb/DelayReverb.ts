@@ -1,4 +1,6 @@
-export class DelayReverb {
+import { Effect } from '../../Effect'
+
+export class DelayReverb extends Effect {
   audioContext: AudioContext
   output: AudioNode
   input: AudioNode
@@ -14,6 +16,8 @@ export class DelayReverb {
     audioContext: AudioContext,
     output: AudioNode = audioContext.destination,
   ) {
+    super(audioContext, output)
+
     this.audioContext = audioContext
     this.output = output
     this.input = this.audioContext.createGain()
