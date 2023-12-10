@@ -16,9 +16,3 @@ export function getScaleInKey(scale: ScaleName, key: Note): Note[] {
     (v: number): Note => notes[(v + offset) % notes.length],
   )
 }
-
-// export const scalesAsNotes: Record<ScaleName, Scale> = {
-//   all: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
-//   major: ["C", "D", "E", "F", "G", "A", "B"],
-//   minor: ["C", "D", "D#", "F", "G", "G#", "A#"],
-// };
