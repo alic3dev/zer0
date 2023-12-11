@@ -1,4 +1,5 @@
 export interface SynthPresetValues {
+  id: string
   name: string
   oscillators: { type: OscillatorType; volume?: number; offset?: number }[]
   gain: { initial?: number; curve?: number[] }
@@ -8,6 +9,7 @@ export interface SynthPresetValues {
 }
 
 export class SynthPreset implements SynthPresetValues {
+  id: SynthPresetValues['id'] = crypto.randomUUID()
   name: SynthPresetValues['name'] = 'Basic'
   oscillators: SynthPresetValues['oscillators'] = []
   gain: SynthPresetValues['gain'] = {}
@@ -18,6 +20,7 @@ export class SynthPreset implements SynthPresetValues {
   constructor(preset?: Partial<SynthPresetValues>) {
     if (!preset) return
 
+    if (preset.id) this.id = preset.id
     if (preset.name) this.name = preset.name
     if (preset.oscillators) this.oscillators = preset.oscillators
     if (preset.gain) this.gain = preset.gain
@@ -28,6 +31,7 @@ export class SynthPreset implements SynthPresetValues {
 
   asObject(): SynthPresetValues {
     return {
+      id: this.id,
       name: this.name,
       oscillators: this.oscillators,
       gain: this.gain,

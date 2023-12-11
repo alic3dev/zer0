@@ -1,8 +1,6 @@
 import { Oscillator } from './Oscillator'
 import { SynthPreset, SynthPresetValues } from './SynthPreset'
 
-const PRESET_LOCAL_STORAGE_PREFIX: string = 'ゼロ：プレセト：'
-
 export class Synth {
   readonly audioContext: AudioContext
   readonly output: AudioNode
@@ -19,7 +17,7 @@ export class Synth {
     portamento: number
     gainCurve: number[]
     name: string
-    id: string
+    polyphony: number
   } = {
     syncBPM: true,
     bpm: 90,
@@ -27,20 +25,23 @@ export class Synth {
     portamento: 0,
     gainCurve: [0, 1, 1, 0.75, 0.25, 0],
     name: 'Basic',
-    id: crypto.randomUUID(),
+    polyphony: 1,
   }
 
   #syncBPM: boolean = Synth.defaults.syncBPM
   #bpm: number = Synth.defaults.bpm
   #hold: number = Synth.defaults.hold
+  // TODO: Add Attack Decay Sustain Release (Per OSC?)
   #portamento: number = Synth.defaults.portamento
   #gainCurve: number[] = Synth.defaults.gainCurve
+  #polyphony: number = Synth.defaults.polyphony
   name: string = Synth.defaults.name
-  id: string = Synth.defaults.id
+  id: string = crypto.randomUUID()
 
   #preset: SynthPreset
   #getDefaultPreset(): SynthPresetValues {
     return {
+      id: this.id,
       name: this.name,
       gain: {
         initial: 0,
@@ -57,6 +58,7 @@ export class Synth {
     audioContext: AudioContext,
     name?: string,
     output: AudioNode = audioContext.destination,
+    savedPreset?: SynthPresetValues,
   ) {
     this.#status = 'configuring'
     this.name = name ?? this.name
@@ -66,19 +68,10 @@ export class Synth {
     this.gain.gain.value = 0
     this.gain.connect(this.output)
 
-    // FIXME: Shouldn't load/save presets unless name is explicitly set, something like that
-    const savedPreset = window.localStorage.getItem(
-      `${PRESET_LOCAL_STORAGE_PREFIX}${this.name}`,
-    )
-
     if (savedPreset) {
       try {
-        this.#preset = new SynthPreset(JSON.parse(savedPreset))
+        this.#preset = new SynthPreset(savedPreset)
       } catch {
-        window.localStorage.removeItem(
-          `${PRESET_LOCAL_STORAGE_PREFIX}${this.name}`,
-        )
-
         this.#preset = new SynthPreset(this.#getDefaultPreset())
       }
     } else {
@@ -119,6 +112,10 @@ export class Synth {
       this.#preset.bpm = this.#syncBPM ? this.#bpm || true : false
       this.savePreset()
     }
+  }
+
+  getPolyphony(): number {
+    return this.#polyphony
   }
 
   getHold(): number {
@@ -255,6 +252,9 @@ export class Synth {
   #configure(): void {
     this.#status = 'configuring'
 
+    this.id = this.#preset.id
+    this.name = this.#preset.name
+
     if (this.#preset.gain.initial) {
       this.gain.gain.value = this.#preset.gain.initial
     }
@@ -280,6 +280,10 @@ export class Synth {
     this.#status = 'configured'
   }
 
+  getPresetJSON(): string {
+    return this.#preset.getJSON()
+  }
+
   #savePresetDeferHandler?: number
   savePreset(): void {
     if (this.#savePresetDeferHandler) {
@@ -290,22 +294,22 @@ export class Synth {
     this.#savePresetDeferHandler = window.setTimeout(
       (): void =>
         window.localStorage.setItem(
-          `${PRESET_LOCAL_STORAGE_PREFIX}${this.name}`,
+          `ゼロ：Synth：${this.id}`,
           this.#preset.getJSON(),
         ),
       100,
     )
   }
 
-  #loadFromPreset(preset: SynthPreset): void {
-    this.#status = 'configuring'
+  // #loadFromPreset(preset: SynthPreset): void {
+  //   this.#status = 'configuring'
 
-    if (preset === this.#preset) throw new Error('Preset already loaded')
+  //   if (preset === this.#preset) throw new Error('Preset already loaded')
 
-    this.#preset = preset
+  //   this.#preset = preset
 
-    this.#configure()
+  //   this.#configure()
 
-    this.#status = 'configured'
-  }
+  //   this.#status = 'configured'
+  // }
 }
