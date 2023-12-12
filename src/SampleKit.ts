@@ -11,6 +11,9 @@ export class SampleKit {
   readonly #output: AudioNode
   readonly #samples: Record<string, Sample>
 
+  id: string = crypto.randomUUID()
+  name: string = 'Kit #1'
+
   constructor(
     audioContext: AudioContext,
     samples: Record<string, RequestInfo | URL | SampleOptions>,
