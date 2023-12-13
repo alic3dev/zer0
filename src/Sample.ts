@@ -54,7 +54,7 @@ export class Sample {
     this.#onReadyCallback = onReadyCallback
   }
 
-  play(gain = 1.0) {
+  play(offset: number = 0, gain: number = 1.0): void {
     if (!this.#sampleAudioBuffer) {
       throw new Error('Sample not buffered')
     }
@@ -64,6 +64,6 @@ export class Sample {
     const source = this.#audioContext.createBufferSource()
     source.buffer = this.#sampleAudioBuffer
     source.connect(this.#gain)
-    source.start()
+    source.start(this.#audioContext.currentTime + offset)
   }
 }

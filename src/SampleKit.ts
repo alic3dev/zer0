@@ -55,20 +55,23 @@ export class SampleKit {
   }
 
   // FIXME: These params are weird
-  play(...sampleKeys: (string | { name: string; gain?: number })[]): void {
+  play(
+    offset: number = 0,
+    ...sampleKeys: (string | { name: string; gain?: number })[]
+  ): void {
     for (const sampleKey of sampleKeys) {
       if (typeof sampleKey === 'string') {
-        const sample: Sample = this.#samples[sampleKey]
+        const sample: Sample = this.samples[sampleKey]
 
         if (!sample) throw new Error('Unknown sample key')
 
-        sample.play()
+        sample.play(offset)
       } else {
-        const sample: Sample = this.#samples[sampleKey.name]
+        const sample: Sample = this.samples[sampleKey.name]
 
         if (!sample) throw new Error('Unknown sample key')
 
-        sample.play(sampleKey.gain)
+        sample.play(offset, sampleKey.gain)
       }
     }
   }
