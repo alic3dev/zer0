@@ -9,7 +9,8 @@ export interface SampleOptions {
 export class SampleKit {
   readonly #audioContext: AudioContext
   readonly #output: AudioNode
-  readonly #samples: Record<string, Sample>
+
+  readonly samples: Record<string, Sample>
 
   id: string = crypto.randomUUID()
   name: string = 'Kit #1'
@@ -22,39 +23,35 @@ export class SampleKit {
     this.#audioContext = audioContext
     this.#output = output
 
-    this.#samples = {}
+    this.samples = {}
 
     for (const sampleKey in samples) {
       const sample = samples[sampleKey]
 
-      if (
-        typeof sample === 'string' ||
-        sample instanceof Request ||
-        sample instanceof URL
-      ) {
-        this.#samples[sampleKey] = new Sample(
-          this.#audioContext,
-          sample,
-          this.#output,
-        )
-      } else if (typeof sample.gain === 'number' && sample.gain !== 1.0) {
-        const sampleGain = audioContext.createGain()
-        sampleGain.gain.value = sample.gain
-        sampleGain.connect(sample.output ?? this.#output)
-
-        this.#samples[sampleKey] = new Sample(
-          this.#audioContext,
-          sample.input,
-          sampleGain,
-        )
-      } else {
-        this.#samples[sampleKey] = new Sample(
-          this.#audioContext,
-          sample.input,
-          sample.output ?? this.#output,
-        )
-      }
+      this.addSample(sampleKey, sample)
     }
+  }
+
+  addSample(sampleKey: string, sample: RequestInfo | URL | SampleOptions) {
+    let gain: number = 1
+    let output: AudioNode = this.#output
+    let input: RequestInfo | URL = sample as RequestInfo | URL
+
+    if (
+      typeof sample !== 'string' &&
+      !(sample instanceof Request) &&
+      !(sample instanceof URL)
+    ) {
+      gain = sample.gain ?? gain
+      output = sample.output ?? output
+      input = sample.input ?? input
+    }
+
+    const sampleGain: GainNode = this.#audioContext.createGain()
+    sampleGain.gain.value = gain
+    sampleGain.connect(output)
+
+    this.samples[sampleKey] = new Sample(this.#audioContext, input, sampleGain)
   }
 
   // FIXME: These params are weird

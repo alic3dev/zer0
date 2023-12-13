@@ -3,6 +3,8 @@ export class Sample {
   readonly #output: AudioNode
   readonly #gain: GainNode
 
+  #url?: RequestInfo | URL
+
   #ready?: boolean = false
   #onReadyCallback?: () => void
   #sampleAudioBuffer?: AudioBuffer
@@ -22,7 +24,15 @@ export class Sample {
     if (sampleInput) this.#fetchSample(sampleInput)
   }
 
-  async #fetchSample(input: RequestInfo | URL) {
+  getUrl(): RequestInfo | URL | undefined {
+    return this.#url
+  }
+
+  async setUrl(url: RequestInfo | URL): Promise<void> {
+    return await this.#fetchSample(url)
+  }
+
+  async #fetchSample(input: RequestInfo | URL): Promise<void> {
     const res = await fetch(input)
     const arrayBuffer = await res.arrayBuffer()
 
@@ -30,6 +40,7 @@ export class Sample {
       arrayBuffer,
     )
 
+    this.#url = input
     this.#ready = true
 
     if (this.#onReadyCallback) this.#onReadyCallback()
