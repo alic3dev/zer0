@@ -59,11 +59,13 @@ export class Sample {
       throw new Error('Sample not buffered')
     }
 
-    this.#gain.gain.value = gain
+    const playAtTime = this.#audioContext.currentTime + offset
+
+    this.#gain.gain.setValueAtTime(gain, playAtTime)
 
     const source = this.#audioContext.createBufferSource()
     source.buffer = this.#sampleAudioBuffer
     source.connect(this.#gain)
-    source.start(this.#audioContext.currentTime + offset)
+    source.start(playAtTime)
   }
 }
