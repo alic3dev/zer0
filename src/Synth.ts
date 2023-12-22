@@ -85,7 +85,7 @@ export class Synth {
 
     this.frequencyConstantSourceNode.start()
 
-    this.#status = 'configured'
+    this.savePreset(false)
   }
 
   getBPM(): number {
@@ -285,20 +285,24 @@ export class Synth {
   }
 
   #savePresetDeferHandler?: number
-  savePreset(): void {
+  savePreset(defer: boolean = true): void {
     if (this.#savePresetDeferHandler) {
       clearTimeout(this.#savePresetDeferHandler)
       this.#savePresetDeferHandler = undefined
     }
 
-    this.#savePresetDeferHandler = window.setTimeout(
-      (): void =>
-        window.localStorage.setItem(
-          `ゼロ：Synth：${this.id}`,
-          this.#preset.getJSON(),
-        ),
-      100,
-    )
+    const save = (): void => {
+      window.localStorage.setItem(
+        `ゼロ：Synth：${this.id}`,
+        this.#preset.getJSON(),
+      )
+    }
+
+    if (defer) {
+      this.#savePresetDeferHandler = window.setTimeout(save, 100)
+    } else {
+      save()
+    }
   }
 
   // #loadFromPreset(preset: SynthPreset): void {
