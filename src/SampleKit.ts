@@ -48,25 +48,21 @@ export class SampleKit {
     this.samples = {}
 
     if (savedPreset) {
-      try {
-        for (const sampleKey in savedPreset.samples) {
-          if (savedPreset.samples[sampleKey] instanceof Sample) {
-            this.samples[sampleKey] = savedPreset.samples[sampleKey] as Sample
-          } else {
-            this.addSample(
-              sampleKey,
-              (savedPreset.samples[sampleKey] as { url: string }).url,
-            )
-          }
+      for (const sampleKey in savedPreset.samples) {
+        if (savedPreset.samples[sampleKey] instanceof Sample) {
+          this.samples[sampleKey] = savedPreset.samples[sampleKey] as Sample
+        } else {
+          this.addSample(
+            sampleKey,
+            (savedPreset.samples[sampleKey] as { url: string }).url,
+          )
         }
-
-        this.#preset = new SampleKitPreset({
-          ...savedPreset,
-          samples: this.samples,
-        })
-      } catch {
-        this.#preset = new SampleKitPreset(this.#getDefaultPreset())
       }
+
+      this.#preset = new SampleKitPreset({
+        ...savedPreset,
+        samples: this.samples,
+      })
     } else {
       this.#preset = new SampleKitPreset(this.#getDefaultPreset())
     }
@@ -78,11 +74,13 @@ export class SampleKit {
       const sample = samples[sampleKey]
 
       this.addSample(sampleKey, sample)
+
+      this.#preset.samples[sampleKey] = this.samples[sampleKey]
     }
 
     this.#status = 'configured'
 
-    this.savePreset()
+    this.savePreset(false)
   }
 
   async isReady(): Promise<void> {
@@ -140,6 +138,10 @@ export class SampleKit {
 
     this.samples[sampleKey] = new Sample(this.#audioContext, input, sampleGain)
 
+    if (this.#preset) {
+      this.#preset.samples[sampleKey] = this.samples[sampleKey]
+    }
+
     if (this.#status === 'configured') {
       this.savePreset()
     }
@@ -172,19 +174,23 @@ export class SampleKit {
   }
 
   #savePresetDeferHandler?: number
-  savePreset(): void {
+  savePreset(defer: boolean = true): void {
     if (this.#savePresetDeferHandler) {
       clearTimeout(this.#savePresetDeferHandler)
       this.#savePresetDeferHandler = undefined
     }
 
-    this.#savePresetDeferHandler = window.setTimeout(
-      (): void =>
-        window.localStorage.setItem(
-          `ゼロ：Sample＿Kit：${this.id}`,
-          this.#preset.getJSON(),
-        ),
-      100,
-    )
+    const save = (): void => {
+      window.localStorage.setItem(
+        `ゼロ：Sample＿Kit：${this.id}`,
+        this.#preset.getJSON(),
+      )
+    }
+
+    if (defer) {
+      this.#savePresetDeferHandler = window.setTimeout(save, 100)
+    } else {
+      save()
+    }
   }
 }

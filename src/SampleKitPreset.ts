@@ -28,22 +28,19 @@ export class SampleKitPreset implements SampleKitPresetValues {
   }
 
   asObject(): SampleKitPresetValuesParsed {
+    const samples: Record<string, { url: string }> = {}
+
+    for (const key in this.samples) {
+      samples[key] = {
+        url: this.samples[key].getUrl()?.toString() ?? '',
+      }
+    }
+
     return {
       id: this.id,
       name: this.name,
       gain: this.gain,
-      samples: Object.keys(this.samples)
-        .map((sampleKey: string): [string, { url?: string }] => [
-          sampleKey,
-          { url: this.samples[sampleKey].getUrl()?.toString() },
-        ])
-        .reduce(
-          (p: Record<string, { url?: string }>, c) => ({
-            ...p,
-            [c[0]]: c[1],
-          }),
-          {},
-        ),
+      samples,
     }
   }
 

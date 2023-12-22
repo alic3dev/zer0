@@ -33,6 +33,8 @@ export class Sample {
   }
 
   async #fetchSample(input: RequestInfo | URL): Promise<void> {
+    this.#url = input
+
     const res = await fetch(input)
     const arrayBuffer = await res.arrayBuffer()
 
@@ -40,7 +42,6 @@ export class Sample {
       arrayBuffer,
     )
 
-    this.#url = input
     this.#ready = true
 
     for (const cb of this.#onReadyCallbacks) {
