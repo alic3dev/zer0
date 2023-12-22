@@ -6,7 +6,7 @@ export class Sample {
   #url?: RequestInfo | URL
 
   #ready?: boolean = false
-  #onReadyCallback?: () => void
+  #onReadyCallbacks: (() => void)[] = []
   #sampleAudioBuffer?: AudioBuffer
 
   constructor(
@@ -43,15 +43,23 @@ export class Sample {
     this.#url = input
     this.#ready = true
 
-    if (this.#onReadyCallback) this.#onReadyCallback()
+    for (const cb of this.#onReadyCallbacks) {
+      cb()
+    }
+
+    this.#onReadyCallbacks.splice(0)
   }
 
-  isReady() {
-    return this.#ready
+  async isReady(): Promise<void> {
+    await new Promise<void>((resolve) => this.#onReadyCallbacks.push(resolve))
+  }
+
+  isReadySync(): boolean {
+    return this.#ready ?? false
   }
 
   onReady(onReadyCallback: () => void) {
-    this.#onReadyCallback = onReadyCallback
+    this.#onReadyCallbacks.push(onReadyCallback)
   }
 
   play(offset: number = 0, gain: number = 1.0): void {
