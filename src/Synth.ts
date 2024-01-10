@@ -3,7 +3,7 @@ import { SynthPreset, SynthPresetValues } from './SynthPreset'
 
 export class Synth {
   readonly audioContext: AudioContext
-  readonly output: AudioNode
+  #output: AudioNode
   readonly gain: GainNode
   readonly oscillators: Oscillator[] = []
   readonly frequencyConstantSourceNode: ConstantSourceNode
@@ -63,10 +63,10 @@ export class Synth {
     this.#status = 'configuring'
     this.name = name ?? this.name
     this.audioContext = audioContext
-    this.output = output
+    this.#output = output
     this.gain = audioContext.createGain()
     this.gain.gain.value = 0
-    this.gain.connect(this.output)
+    this.gain.connect(this.#output)
 
     if (savedPreset) {
       try {
@@ -86,6 +86,12 @@ export class Synth {
     this.frequencyConstantSourceNode.start()
 
     this.savePreset(false)
+  }
+
+  setOutput(output: AudioNode) {
+    this.gain.disconnect(this.#output)
+    this.#output = output
+    this.gain.connect(this.#output)
   }
 
   getBPM(): number {
