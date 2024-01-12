@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
+    "test": "echo 'TODO: Implement tests'",
     "clean": "rm -r build"
   },
   "keywords": [],
