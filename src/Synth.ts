@@ -18,6 +18,7 @@ export class Synth {
     gainCurve: number[]
     name: string
     polyphony: number
+    shouldSave: boolean
   } = {
     syncBPM: true,
     bpm: 90,
@@ -26,6 +27,7 @@ export class Synth {
     gainCurve: [0, 1, 1, 0.75, 0.25, 0],
     name: 'Basic',
     polyphony: 1,
+    shouldSave: true,
   }
 
   #syncBPM: boolean = Synth.defaults.syncBPM
@@ -35,6 +37,7 @@ export class Synth {
   #portamento: number = Synth.defaults.portamento
   #gainCurve: number[] = Synth.defaults.gainCurve
   #polyphony: number = Synth.defaults.polyphony
+  #shouldSave: boolean = Synth.defaults.shouldSave
   name: string = Synth.defaults.name
   id: string = crypto.randomUUID()
 
@@ -59,6 +62,7 @@ export class Synth {
     name?: string,
     output: AudioNode = audioContext.destination,
     savedPreset?: SynthPresetValues,
+    shouldSave: boolean = true,
   ) {
     this.#status = 'configuring'
     this.name = name ?? this.name
@@ -67,6 +71,7 @@ export class Synth {
     this.gain = audioContext.createGain()
     this.gain.gain.value = 0
     this.gain.connect(this.#output)
+    this.#shouldSave = shouldSave
 
     if (savedPreset) {
       try {
@@ -292,6 +297,8 @@ export class Synth {
 
   #savePresetDeferHandler?: number
   savePreset(defer: boolean = true): void {
+    if (!this.#shouldSave) return
+
     if (this.#savePresetDeferHandler) {
       clearTimeout(this.#savePresetDeferHandler)
       this.#savePresetDeferHandler = undefined
