@@ -1,6 +1,6 @@
 import { Note, notes } from './NoteTables'
 
-type ScaleName = 'all' | 'major' | 'minor'
+export type ScaleName = 'all' | 'major' | 'minor'
 
 export const scales: Record<ScaleName, number[]> = {
   //    C  C# D  D# E  F  F# G  G# A  A#   B
