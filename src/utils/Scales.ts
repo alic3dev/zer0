@@ -9,6 +9,8 @@ export const scales: Record<ScaleName, number[]> = {
   minor: [0, 2, 3, 5, 7, 8, 10],
 }
 
+export const scaleNames: ScaleName[] = Object.keys(scales) as ScaleName[]
+
 export function getScaleInKey(scale: ScaleName, key: Note): Note[] {
   const offset: number = notes.indexOf(key)
 
