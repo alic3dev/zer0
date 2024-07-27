@@ -339,7 +339,7 @@ export class Synth {
 
     const save = (): void => {
       window.localStorage.setItem(
-        `ゼロ：Synth：${this.id}`,
+        `${Synth.localStorageKeyPrefix}${this.id}`,
         this.preset.getJSON(),
       )
     }
@@ -362,4 +362,6 @@ export class Synth {
 
   //   this.status = 'configured'
   // }
+
+  static localStorageKeyPrefix: string = 'ゼロ：Synth：'
 }

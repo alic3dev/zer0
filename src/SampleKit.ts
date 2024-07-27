@@ -220,7 +220,7 @@ export class SampleKit {
 
     const save = (): void => {
       window.localStorage.setItem(
-        `ゼロ：Sample＿Kit：${this.id}`,
+        `${SampleKit.localStorageKeyPrefix}${this.id}`,
         this.preset.getJSON(),
       )
     }
@@ -231,4 +231,6 @@ export class SampleKit {
       save()
     }
   }
+
+  static localStorageKeyPrefix: string = 'ゼロ：Sample＿Kit：'
 }
