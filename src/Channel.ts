@@ -1,20 +1,42 @@
+import { Effect } from './Effect'
+
 export class Channel {
   readonly audioContext: AudioContext
   readonly output: AudioNode
   readonly gain: GainNode
   readonly analyser: AnalyserNode
-  // TODO: Add Effect Chain
   readonly destination: AudioNode
+
+  #effectChain: Effect[] = []
 
   readonly #FFT_SIZE: number = 2048
   readonly #ANALYSER_BUFFER_LENGTH: number
   readonly #ANALYSER_DATA_ARRAY: Uint8Array
 
-  constructor(
-    audioContext: AudioContext,
-    output: AudioNode = audioContext.destination,
-    withAnalyser: boolean = true,
-  ) {
+  public id: string = crypto.randomUUID()
+  public name: string = 'Channel'
+
+  constructor({
+    id,
+    name,
+    audioContext,
+    output = audioContext.destination,
+    withAnalyser = true,
+  }: {
+    id?: string
+    name?: string
+    audioContext: AudioContext
+    output?: AudioNode
+    withAnalyser?: boolean
+  }) {
+    if (id) {
+      this.id = id
+    }
+
+    if (name) {
+      this.name = name
+    }
+
     this.audioContext = audioContext
     this.output = output
 
@@ -39,6 +61,30 @@ export class Channel {
     }
 
     this.destination = this.gain
+  }
+
+  getEffectChain(): readonly Effect[] {
+    return Object.freeze([...this.#effectChain])
+  }
+
+  addEffect(effect: Effect | typeof Effect) {
+    if (effect instanceof Effect) this.#effectChain.push(effect)
+    // else this.#effectChain.push(new effect(this.audioContext))
+  }
+
+  // moveEffect(effect: Effect, position: number | 'up' | 'down') {
+  //   const effectIndex = this.#effectChain.findIndex(chainedEffect => chainedEffect === effect);
+  //   this.#effectChain = []
+  // }
+
+  removeEffect(effect: Effect) {
+    const effectIndex = this.#effectChain.findIndex(
+      (chainedEffect) => chainedEffect === effect,
+    )
+
+    if (effectIndex === -1) throw new Error("Can't find effect to remove")
+
+    this.#effectChain.splice(effectIndex, 1)
   }
 
   pollAnalyser(): Uint8Array {
