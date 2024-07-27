@@ -1,3 +1,4 @@
+import { Channel } from './Channel'
 import { Sample } from './Sample'
 import {
   SampleKitPreset,
@@ -12,18 +13,11 @@ export interface SampleOptions {
 }
 
 export class SampleKit {
-  readonly #audioContext: AudioContext
-  readonly #output: AudioNode
-
-  readonly samples: Record<string, Sample>
-
-  id: string = crypto.randomUUID()
-  name: string = 'Kit #1'
-
-  #status: 'configured' | 'configuring' = 'configuring'
-
-  #preset: SampleKitPreset
-  #getDefaultPreset(): SampleKitPresetValues {
+  private status: 'configured' | 'configuring' = 'configuring'
+  private readonly audioContext: AudioContext
+  private output: AudioNode
+  private preset: SampleKitPreset
+  private getDefaultPreset(): SampleKitPresetValues {
     return {
       id: this.id,
       name: this.name,
@@ -34,16 +28,48 @@ export class SampleKit {
     }
   }
 
-  constructor(
-    audioContext: AudioContext,
-    samples: Record<string, RequestInfo | URL | SampleOptions>,
-    output: AudioNode = audioContext.destination,
-    savedPreset?: SampleKitPresetValues | SampleKitPresetValuesParsed,
-  ) {
-    this.#status = 'configuring'
+  id: string = crypto.randomUUID()
+  name: string = 'Kit'
 
-    this.#audioContext = audioContext
-    this.#output = output
+  channel?: Channel
+  readonly gain: GainNode
+
+  readonly samples: Record<string, Sample>
+
+  constructor({
+    audioContext,
+    name,
+    samples = {},
+    channel,
+    output,
+    savedPreset,
+  }: {
+    audioContext: AudioContext
+    name?: string
+    samples?: Record<string, RequestInfo | URL | SampleOptions>
+    channel?: Channel
+    output?: AudioNode
+    savedPreset?: SampleKitPresetValues | SampleKitPresetValuesParsed
+  }) {
+    this.status = 'configuring'
+
+    this.name = name ?? this.name
+
+    this.audioContext = audioContext
+
+    this.channel = channel
+
+    if (output) {
+      this.output = output
+    } else if (channel) {
+      this.output = channel.destination
+    } else {
+      this.output = audioContext.destination
+    }
+
+    this.gain = this.audioContext.createGain()
+    this.gain.gain.value = 1
+    this.gain.connect(this.output)
 
     this.samples = {}
 
@@ -59,26 +85,26 @@ export class SampleKit {
         }
       }
 
-      this.#preset = new SampleKitPreset({
+      this.preset = new SampleKitPreset({
         ...savedPreset,
         samples: this.samples,
       })
     } else {
-      this.#preset = new SampleKitPreset(this.#getDefaultPreset())
+      this.preset = new SampleKitPreset(this.getDefaultPreset())
     }
 
-    this.id = this.#preset.id ?? this.id
-    this.name = this.#preset.name ?? this.name
+    this.id = this.preset.id ?? this.id
+    this.name = this.preset.name ?? this.name
 
     for (const sampleKey in samples) {
       const sample = samples[sampleKey]
 
       this.addSample(sampleKey, sample)
 
-      this.#preset.samples[sampleKey] = this.samples[sampleKey]
+      this.preset.samples[sampleKey] = this.samples[sampleKey]
     }
 
-    this.#status = 'configured'
+    this.status = 'configured'
 
     this.savePreset(false)
   }
@@ -117,9 +143,25 @@ export class SampleKit {
     Promise.all<void>(promises).then(onReadyCallback)
   }
 
+  setOutput(output: AudioNode): void {
+    this.gain.disconnect(this.output)
+    this.output = output
+    this.gain.connect(this.output)
+  }
+
+  setChannel(channel: Channel): void {
+    this.channel = channel
+    this.setOutput(this.channel.destination)
+
+    if (this.status === 'configured') {
+      this.preset.channelId = this.channel.id
+      this.savePreset()
+    }
+  }
+
   addSample(sampleKey: string, sample: RequestInfo | URL | SampleOptions) {
     let gain: number = 1
-    let output: AudioNode = this.#output
+    let output: AudioNode | undefined = this.gain
     let input: RequestInfo | URL = sample as RequestInfo | URL
 
     if (
@@ -132,17 +174,17 @@ export class SampleKit {
       input = sample.input ?? input
     }
 
-    const sampleGain: GainNode = this.#audioContext.createGain()
+    const sampleGain: GainNode = this.audioContext.createGain()
     sampleGain.gain.value = gain
     sampleGain.connect(output)
 
-    this.samples[sampleKey] = new Sample(this.#audioContext, input, sampleGain)
+    this.samples[sampleKey] = new Sample(this.audioContext, input, sampleGain)
 
-    if (this.#preset) {
-      this.#preset.samples[sampleKey] = this.samples[sampleKey]
+    if (this.preset) {
+      this.preset.samples[sampleKey] = this.samples[sampleKey]
     }
 
-    if (this.#status === 'configured') {
+    if (this.status === 'configured') {
       this.savePreset()
     }
   }
@@ -170,27 +212,29 @@ export class SampleKit {
   }
 
   getPresetJSON(): string {
-    return this.#preset.getJSON()
+    return this.preset.getJSON()
   }
 
-  #savePresetDeferHandler?: number
+  private savePresetDeferHandler?: number
   savePreset(defer: boolean = true): void {
-    if (this.#savePresetDeferHandler) {
-      clearTimeout(this.#savePresetDeferHandler)
-      this.#savePresetDeferHandler = undefined
+    if (this.savePresetDeferHandler) {
+      clearTimeout(this.savePresetDeferHandler)
+      this.savePresetDeferHandler = undefined
     }
 
     const save = (): void => {
       window.localStorage.setItem(
-        `ゼロ：Sample＿Kit：${this.id}`,
-        this.#preset.getJSON(),
+        `${SampleKit.localStorageKeyPrefix}${this.id}`,
+        this.preset.getJSON(),
       )
     }
 
     if (defer) {
-      this.#savePresetDeferHandler = window.setTimeout(save, 100)
+      this.savePresetDeferHandler = window.setTimeout(save, 100)
     } else {
       save()
     }
   }
+
+  static localStorageKeyPrefix: string = 'ゼロ：Sample＿Kit：'
 }

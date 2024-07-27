@@ -5,6 +5,7 @@ export interface SampleKitPresetValues {
   name: string
   samples: Record<string, Sample>
   gain: { initial?: number; curve?: number[] }
+  channelId?: string
 }
 
 export interface SampleKitPresetValuesParsed
@@ -17,6 +18,7 @@ export class SampleKitPreset implements SampleKitPresetValues {
   name: SampleKitPresetValues['name'] = 'Basic Kit'
   samples: SampleKitPresetValues['samples'] = {}
   gain: SampleKitPresetValues['gain'] = {}
+  channelId: SampleKitPresetValues['channelId']
 
   constructor(preset?: Partial<SampleKitPresetValues>) {
     if (!preset) return
@@ -25,23 +27,28 @@ export class SampleKitPreset implements SampleKitPresetValues {
     if (preset.name) this.name = preset.name
     if (preset.gain) this.gain = preset.gain
     if (preset.samples) this.samples = preset.samples
+    if (preset.channelId) this.channelId = preset.channelId
   }
 
   asObject(): SampleKitPresetValuesParsed {
-    const samples: Record<string, { url: string }> = {}
+    const res: SampleKitPresetValuesParsed = {
+      id: this.id,
+      name: this.name,
+      gain: this.gain,
+      samples: {},
+    }
 
     for (const key in this.samples) {
-      samples[key] = {
+      res.samples[key] = {
         url: this.samples[key].getUrl()?.toString() ?? '',
       }
     }
 
-    return {
-      id: this.id,
-      name: this.name,
-      gain: this.gain,
-      samples,
+    if (this.channelId) {
+      res.channelId = this.channelId
     }
+
+    return res
   }
 
   getJSON(): string {
