@@ -38,18 +38,22 @@ export class SampleKit {
 
   constructor({
     audioContext,
+    name,
     samples = {},
     channel,
     output,
     savedPreset,
   }: {
     audioContext: AudioContext
+    name?: string
     samples?: Record<string, RequestInfo | URL | SampleOptions>
     channel?: Channel
     output?: AudioNode
     savedPreset?: SampleKitPresetValues | SampleKitPresetValuesParsed
   }) {
     this.status = 'configuring'
+
+    this.name = name ?? this.name
 
     this.audioContext = audioContext
 
