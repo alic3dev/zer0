@@ -142,13 +142,17 @@ export class SampleKit {
   setOutput(output: AudioNode): void {
     this.gain.disconnect(this.output)
     this.output = output
-    this.gain.connect(this.output);
+    this.gain.connect(this.output)
   }
 
   setChannel(channel: Channel): void {
     this.channel = channel
-    console.log(this.channel)
     this.setOutput(this.channel.destination)
+
+    if (this.status === 'configured') {
+      this.preset.channelId = this.channel.id
+      this.savePreset()
+    }
   }
 
   addSample(sampleKey: string, sample: RequestInfo | URL | SampleOptions) {

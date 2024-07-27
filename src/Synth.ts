@@ -143,6 +143,7 @@ export class Synth {
       hold: this.hold,
       portamento: this.portamento,
       oscillators: [{ type: 'sine' }],
+      channelId: this.channel?.id,
     }
   }
 
@@ -155,6 +156,11 @@ export class Synth {
   setChannel(channel: Channel) {
     this.channel = channel
     this.setOutput(this.channel.destination)
+
+    if (this.status === 'configured') {
+      this.preset.channelId = this.channel.id
+      this.savePreset()
+    }
   }
 
   getBPM(): number {

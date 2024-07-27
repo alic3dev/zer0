@@ -6,6 +6,7 @@ export interface SynthPresetValues {
   bpm: boolean | number
   hold: number
   portamento: number
+  channelId?: string
 }
 
 export class SynthPreset implements SynthPresetValues {
@@ -16,6 +17,7 @@ export class SynthPreset implements SynthPresetValues {
   bpm: SynthPresetValues['bpm'] = true
   hold: SynthPresetValues['hold'] = 0.9
   portamento: SynthPresetValues['portamento'] = 0.0
+  channelId: SynthPresetValues['channelId']
 
   constructor(preset?: Partial<SynthPresetValues>) {
     if (!preset) return
@@ -27,10 +29,11 @@ export class SynthPreset implements SynthPresetValues {
     if (preset.bpm) this.bpm = preset.bpm
     if (preset.hold) this.hold = preset.hold
     if (preset.portamento) this.portamento = preset.portamento
+    if (preset.channelId) this.channelId = preset.channelId
   }
 
   asObject(): SynthPresetValues {
-    return {
+    const res: SynthPresetValues = {
       id: this.id,
       name: this.name,
       oscillators: this.oscillators,
@@ -39,6 +42,12 @@ export class SynthPreset implements SynthPresetValues {
       hold: this.hold,
       portamento: this.portamento,
     }
+
+    if (this.channelId) {
+      res.channelId = this.channelId
+    }
+
+    return res
   }
 
   getJSON(): string {
