@@ -31,11 +31,15 @@ export type Octave = {
   [note in Note]: number
 }
 
-export const frequencyRoots: Record<string, number> = {
+export type FrequencyRootName = 'standard' | 'magic' | 'scientific'
+
+export const frequencyRoots: Record<FrequencyRootName, number> = {
   standard: 440,
   magic: 432,
   scientific: 430.54,
 }
+
+export const frequencyRootNames: FrequencyRootName[] = Object.keys(frequencyRoots) as FrequencyRootName[]
 
 export function createNoteTable(
   startingOctave: number = 0,

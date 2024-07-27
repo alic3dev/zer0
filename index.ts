@@ -1,6 +1,6 @@
 export type { SynthPresetValues } from './src/SynthPreset'
 export type { SampleKitPresetValues } from './src/SampleKitPreset'
-export type { Octave, Note } from './src/utils'
+export type { Octave, Note, FrequencyRootName } from './src/utils'
 export type { ScaleName } from './src/utils/Scales'
 
 export { Channel } from './src/Channel'
