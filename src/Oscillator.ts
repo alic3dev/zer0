@@ -1,10 +1,10 @@
 export class Oscillator {
-  readonly #audioContext: AudioContext
-  readonly #output: AudioNode
-  readonly #gain: GainNode
-  readonly #oscillator: OscillatorNode
+  private readonly audioContext: AudioContext
+  private readonly output: AudioNode
+  private readonly _gain: GainNode
+  private readonly oscillator: OscillatorNode
 
-  #type: OscillatorType
+  private _type: OscillatorType
 
   constructor(
     audioContext: AudioContext,
@@ -15,41 +15,41 @@ export class Oscillator {
     }: { type: OscillatorType; volume: number; offset: number },
     output: AudioNode = audioContext.destination,
   ) {
-    this.#audioContext = audioContext
-    this.#type = type
-    this.#output = output
+    this.audioContext = audioContext
+    this._type = type
+    this.output = output
 
-    this.#gain = this.#audioContext.createGain()
-    this.#gain.gain.value = volume
-    this.#gain.connect(this.#output)
+    this._gain = this.audioContext.createGain()
+    this._gain.gain.value = volume
+    this._gain.connect(this.output)
 
-    this.#oscillator = this.#audioContext.createOscillator()
-    this.#oscillator.type = this.#type
-    this.#oscillator.frequency.value = offset
+    this.oscillator = this.audioContext.createOscillator()
+    this.oscillator.type = this._type
+    this.oscillator.frequency.value = offset
 
-    this.#oscillator.connect(this.#gain)
-    this.#oscillator.start()
+    this.oscillator.connect(this._gain)
+    this.oscillator.start()
   }
 
-  get type(): OscillatorType {
-    return this.#type
+  public get type(): OscillatorType {
+    return this._type
   }
 
-  set type(type: OscillatorType) {
-    this.#type = type
+  public set type(type: OscillatorType) {
+    this._type = type
 
-    this.#oscillator.type = this.#type
+    this.oscillator.type = this._type
   }
 
-  get gain(): GainNode {
-    return this.#gain
+  public get gain(): GainNode {
+    return this._gain
   }
 
-  get frequency(): AudioParam {
-    return this.#oscillator.frequency
+  public get frequency(): AudioParam {
+    return this.oscillator.frequency
   }
 
-  stop(when?: number): void {
-    return this.#oscillator.stop(when)
+  public stop(when?: number): void {
+    return this.oscillator.stop(when)
   }
 }

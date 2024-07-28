@@ -3,15 +3,13 @@ import { Effect } from './Effect'
 import { BPMSync } from './BPMSync'
 
 export class EffectChain {
-  private audioContext: AudioContext
+  private readonly audioContext: AudioContext
+  private readonly gain: GainNode
+  private readonly BPMSync: BPMSync
   private output: AudioNode
-  private gain: GainNode
 
-  private BPMSync: BPMSync
-
-  effects: Effect[] = []
-
-  public destination: AudioNode
+  public readonly destination: AudioNode
+  public readonly effects: Effect[] = []
 
   constructor({
     audioContext,
@@ -53,7 +51,7 @@ export class EffectChain {
     }
   }
 
-  addEffect(effect: Effect): void {
+  public addEffect(effect: Effect): void {
     const lastEffect: Effect | undefined = this.effects[this.effects.length - 1]
 
     if (lastEffect) {

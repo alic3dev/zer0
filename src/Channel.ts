@@ -4,6 +4,8 @@ import { BPMSync } from './BPMSync'
 import { EffectChain } from './EffectChain'
 
 export class Channel {
+  private readonly audioContext: AudioContext
+
   public id: UUID = crypto.randomUUID()
   public name: string = 'Channel'
 
@@ -16,8 +18,6 @@ export class Channel {
   public readonly BPMSync: BPMSync = new BPMSync({})
   public readonly ANALYSER_BUFFER_LENGTH?: number
   public readonly ANALYSER_DATA_ARRAY?: Uint8Array
-
-  private audioContext: AudioContext
 
   static readonly FFT_SIZE: number = 2048
 

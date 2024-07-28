@@ -1,16 +1,15 @@
 import { Effect } from '../../Effect'
 
 export class BiquadFilter extends Effect {
-  #biquadFilter: BiquadFilterNode
+  private readonly biquadFilter: BiquadFilterNode
 
   constructor(
     audioContext: AudioContext,
     output: AudioNode = audioContext.destination,
   ) {
-    super(audioContext, output)
+    super({ audioContext, output })
 
-    this.#biquadFilter = this.audioContext.createBiquadFilter()
-
-    this.#biquadFilter.connect(this.output)
+    this.biquadFilter = this.audioContext.createBiquadFilter()
+    this.biquadFilter.connect(this.output)
   }
 }

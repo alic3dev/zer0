@@ -1,4 +1,5 @@
 import type { UUID } from 'crypto'
+
 export interface SynthPresetValues {
   id: UUID
   name: string
@@ -12,15 +13,15 @@ export interface SynthPresetValues {
 }
 
 export class SynthPreset implements SynthPresetValues {
-  id: SynthPresetValues['id'] = crypto.randomUUID()
-  name: SynthPresetValues['name'] = 'Basic'
-  oscillators: SynthPresetValues['oscillators'] = []
-  gain: SynthPresetValues['gain'] = {}
-  bpm: SynthPresetValues['bpm'] = 270
-  bpmSync: SynthPresetValues['bpmSync'] = true
-  hold: SynthPresetValues['hold'] = 0.9
-  portamento: SynthPresetValues['portamento'] = 0.0
-  channelId: SynthPresetValues['channelId']
+  public id: SynthPresetValues['id'] = crypto.randomUUID()
+  public name: SynthPresetValues['name'] = 'Basic'
+  public oscillators: SynthPresetValues['oscillators'] = []
+  public gain: SynthPresetValues['gain'] = {}
+  public bpm: SynthPresetValues['bpm'] = 270
+  public bpmSync: SynthPresetValues['bpmSync'] = true
+  public hold: SynthPresetValues['hold'] = 0.9
+  public portamento: SynthPresetValues['portamento'] = 0.0
+  public channelId: SynthPresetValues['channelId']
 
   constructor(preset?: Partial<SynthPresetValues>) {
     if (!preset) return
@@ -62,7 +63,7 @@ export class SynthPreset implements SynthPresetValues {
     }
   }
 
-  asObject(): SynthPresetValues {
+  public asObject(): SynthPresetValues {
     const res: SynthPresetValues = {
       id: this.id,
       name: this.name,
@@ -81,7 +82,7 @@ export class SynthPreset implements SynthPresetValues {
     return res
   }
 
-  getJSON(): string {
+  public getJSON(): string {
     return JSON.stringify(this.asObject())
   }
 }

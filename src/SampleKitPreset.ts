@@ -1,7 +1,9 @@
+import type { UUID } from 'crypto'
+
 import { Sample } from './Sample'
 
 export interface SampleKitPresetValues {
-  id: string
+  id: UUID
   name: string
   samples: Record<string, Sample>
   gain: { initial?: number; curve?: number[] }
@@ -14,11 +16,11 @@ export interface SampleKitPresetValuesParsed
 }
 
 export class SampleKitPreset implements SampleKitPresetValues {
-  id: SampleKitPresetValues['id'] = crypto.randomUUID()
-  name: SampleKitPresetValues['name'] = 'Basic Kit'
-  samples: SampleKitPresetValues['samples'] = {}
-  gain: SampleKitPresetValues['gain'] = {}
-  channelId: SampleKitPresetValues['channelId']
+  public id: SampleKitPresetValues['id'] = crypto.randomUUID()
+  public name: SampleKitPresetValues['name'] = 'Basic Kit'
+  public samples: SampleKitPresetValues['samples'] = {}
+  public gain: SampleKitPresetValues['gain'] = {}
+  public channelId: SampleKitPresetValues['channelId']
 
   constructor(preset?: Partial<SampleKitPresetValues>) {
     if (!preset) return
@@ -30,7 +32,7 @@ export class SampleKitPreset implements SampleKitPresetValues {
     if (preset.channelId) this.channelId = preset.channelId
   }
 
-  asObject(): SampleKitPresetValuesParsed {
+  public asObject(): SampleKitPresetValuesParsed {
     const res: SampleKitPresetValuesParsed = {
       id: this.id,
       name: this.name,
@@ -51,7 +53,7 @@ export class SampleKitPreset implements SampleKitPresetValues {
     return res
   }
 
-  getJSON(): string {
+  public getJSON(): string {
     return JSON.stringify(this.asObject())
   }
 }

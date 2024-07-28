@@ -39,7 +39,9 @@ export const frequencyRoots: Record<FrequencyRootName, number> = {
   scientific: 430.54,
 }
 
-export const frequencyRootNames: FrequencyRootName[] = Object.keys(frequencyRoots) as FrequencyRootName[]
+export const frequencyRootNames: FrequencyRootName[] = Object.keys(
+  frequencyRoots,
+) as FrequencyRootName[]
 
 export function createNoteTable(
   startingOctave: number = 0,
@@ -48,7 +50,7 @@ export function createNoteTable(
 ): Octave[] {
   const noteTable: Octave[] = []
 
-  for (let i = startingOctave; i <= endingOctave; i++) {
+  for (let i: number = startingOctave; i <= endingOctave; i++) {
     noteTable.push({
       C: Math.pow(2, (-57 + i * 12) / 12) * frequency,
       'C#': Math.pow(2, (-56 + i * 12) / 12) * frequency,

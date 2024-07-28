@@ -1,6 +1,6 @@
 export class Noise {
-  readonly audioContext: AudioContext
-  readonly output: AudioNode
+  private readonly audioContext: AudioContext
+  private readonly output: AudioNode
 
   constructor(
     audioContext: AudioContext,
@@ -26,10 +26,13 @@ export class Noise {
       // This gives us the actual ArrayBuffer that contains the data
       const nowBuffering: Float32Array = myArrayBuffer.getChannelData(channel)
 
-      for (let i: number = 0; i < myArrayBuffer.length; i++) {
+      // 132300
+
+      for (let i: number = 0; i < nowBuffering.length; i++) {
         // Math.random() is in [0; 2.0]
         // audio needs to be in [-1.0; 1.0]
-        nowBuffering[i] = Math.random() * 2 - 1
+        nowBuffering[i] = Math.sin((i + 1) * 0.6527772545814514)
+        // nowBuffering[i] = Math.random() * 2 - 1
       }
     }
 
@@ -40,6 +43,8 @@ export class Noise {
     // set the buffer in the AudioBufferSourceNode
     source.buffer = myArrayBuffer
     source.loop = true
+
+    source.playbackRate.value = 0.00669
 
     // connect the AudioBufferSourceNode to the
     // destination so we can hear the sound

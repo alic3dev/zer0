@@ -13,8 +13,8 @@ export abstract class Effect {
   public readonly parameters: AutomatableParameter[] = []
 
   protected output: AudioNode
-  protected dryGainNode: GainNode
-  protected wetGainNode: GainNode
+  protected readonly dryGainNode: GainNode
+  protected readonly wetGainNode: GainNode
   protected mix: number = 1 / 3
 
   constructor({

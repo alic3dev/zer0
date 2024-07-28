@@ -1,9 +1,11 @@
 import type { UUID } from 'crypto'
 
+import type { Channel } from './Channel'
+import type { SynthPresetValues } from './SynthPreset'
+
 import { BPMSync } from './BPMSync'
-import { Channel } from './Channel'
 import { Oscillator } from './Oscillator'
-import { SynthPreset, SynthPresetValues } from './SynthPreset'
+import { SynthPreset } from './SynthPreset'
 
 export class Synth {
   static readonly defaults: {
@@ -25,17 +27,12 @@ export class Synth {
     polyphony: 1,
     shouldSave: true,
   })
+  static readonly localStorageKeyPrefix: string = 'ゼロ：Synth：'
 
+  private readonly audioContext: AudioContext
+  private channel?: Channel
   private output: AudioNode
   private status: 'configured' | 'configuring' = 'configuring'
-
-  readonly BPMSync: BPMSync = new BPMSync({
-    bpm: Synth.defaults.bpm,
-    sync: Synth.defaults.syncBPM,
-
-    onBPMChange: this.onBPMChange.bind(this),
-    onSyncChange: this.onBPMSyncChange.bind(this),
-  })
 
   private hold: number = Synth.defaults.hold
   // TODO: Add Attack Decay Sustain Release (Per OSC?)
@@ -44,16 +41,23 @@ export class Synth {
   private polyphony: number = Synth.defaults.polyphony
 
   private shouldSave: boolean = Synth.defaults.shouldSave
-  private preset: SynthPreset
+  private readonly preset: SynthPreset
 
-  readonly audioContext: AudioContext
-  channel?: Channel
-  readonly gain: GainNode
-  readonly oscillators: Oscillator[] = []
-  readonly frequencyConstantSourceNode: ConstantSourceNode
+  private readonly frequencyConstantSourceNode: ConstantSourceNode
 
   public name: string = Synth.defaults.name
   public id: UUID = crypto.randomUUID()
+
+  public readonly BPMSync: BPMSync = new BPMSync({
+    bpm: Synth.defaults.bpm,
+    sync: Synth.defaults.syncBPM,
+
+    onBPMChange: this.onBPMChange.bind(this),
+    onSyncChange: this.onBPMSyncChange.bind(this),
+  })
+
+  public readonly gain: GainNode
+  public readonly oscillators: Oscillator[] = []
 
   constructor({
     audioContext,
@@ -156,6 +160,29 @@ export class Synth {
     }
   }
 
+  private savePresetDeferHandler?: number
+  private savePreset(defer: boolean = true): void {
+    if (!this.shouldSave) return
+
+    if (this.savePresetDeferHandler) {
+      clearTimeout(this.savePresetDeferHandler)
+      this.savePresetDeferHandler = undefined
+    }
+
+    const save = (): void => {
+      window.localStorage.setItem(
+        `${Synth.localStorageKeyPrefix}${this.id}`,
+        this.preset.getJSON(),
+      )
+    }
+
+    if (defer) {
+      this.savePresetDeferHandler = window.setTimeout(save, 100)
+    } else {
+      save()
+    }
+  }
+
   private onBPMChange(): void {
     if (this.status === 'configured') {
       this.preset.bpm = this.BPMSync.getBPM()
@@ -170,13 +197,17 @@ export class Synth {
     }
   }
 
-  setOutput(output: AudioNode) {
+  public setOutput(output: AudioNode) {
     this.gain.disconnect(this.output)
     this.output = output
     this.gain.connect(this.output)
   }
 
-  setChannel(channel: Channel) {
+  public getChannel(): Channel | undefined {
+    return this.channel
+  }
+
+  public setChannel(channel: Channel) {
     this.channel = channel
     this.setOutput(this.channel.destination)
 
@@ -186,15 +217,15 @@ export class Synth {
     }
   }
 
-  getPolyphony(): number {
+  public getPolyphony(): number {
     return this.polyphony
   }
 
-  getHold(): number {
+  public getHold(): number {
     return this.hold
   }
 
-  setHold(hold: number) {
+  public setHold(hold: number) {
     this.hold = hold
 
     if (this.status === 'configured') {
@@ -203,11 +234,11 @@ export class Synth {
     }
   }
 
-  getPortamento(): number {
+  public getPortamento(): number {
     return this.portamento
   }
 
-  setPortamento(portamento: number) {
+  public setPortamento(portamento: number) {
     this.portamento = portamento
 
     if (this.status === 'configured') {
@@ -216,11 +247,11 @@ export class Synth {
     }
   }
 
-  getGainCurve(): number[] {
+  public getGainCurve(): number[] {
     return this.gainCurve
   }
 
-  setGainCurve(gainCurve: number[]) {
+  public setGainCurve(gainCurve: number[]) {
     this.gainCurve = gainCurve
 
     if (this.status === 'configured') {
@@ -229,7 +260,7 @@ export class Synth {
     }
   }
 
-  modifyOscillator(
+  public modifyOscillator(
     oscillatorOrIndex: Oscillator | number,
     action: { type?: OscillatorType; volume?: number; offset?: number },
   ): void {
@@ -259,7 +290,7 @@ export class Synth {
     this.savePreset()
   }
 
-  removeOscillator(oscillatorOrIndex: Oscillator | number): void {
+  public removeOscillator(oscillatorOrIndex: Oscillator | number): void {
     const oscillatorToRemoveIndex = this.oscillators.findIndex(
       (oscillator, oscillatorIndex) =>
         oscillator === oscillatorOrIndex ||
@@ -281,7 +312,7 @@ export class Synth {
     }
   }
 
-  addOscillator(
+  public addOscillator(
     type: OscillatorType = 'sine',
     volume = 1.0,
     offset = 0.0,
@@ -302,7 +333,11 @@ export class Synth {
     }
   }
 
-  playNote(frequency: number, offset: number = 0, duration: number = 1): void {
+  public playNote(
+    frequency: number,
+    offset: number = 0,
+    duration: number = 1,
+  ): void {
     const timeToPlay: number =
       this.audioContext.currentTime +
       offset * (60 / this.BPMSync.getUsableBPM())
@@ -322,32 +357,7 @@ export class Synth {
     )
   }
 
-  getPresetJSON(): string {
+  public getPresetJSON(): string {
     return this.preset.getJSON()
   }
-
-  private savePresetDeferHandler?: number
-  savePreset(defer: boolean = true): void {
-    if (!this.shouldSave) return
-
-    if (this.savePresetDeferHandler) {
-      clearTimeout(this.savePresetDeferHandler)
-      this.savePresetDeferHandler = undefined
-    }
-
-    const save = (): void => {
-      window.localStorage.setItem(
-        `${Synth.localStorageKeyPrefix}${this.id}`,
-        this.preset.getJSON(),
-      )
-    }
-
-    if (defer) {
-      this.savePresetDeferHandler = window.setTimeout(save, 100)
-    } else {
-      save()
-    }
-  }
-
-  static localStorageKeyPrefix: string = 'ゼロ：Synth：'
 }

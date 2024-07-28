@@ -5,8 +5,8 @@ export class BPMSync {
   private bpm: number
   private sync: boolean
 
-  private bpmChangeCallbacks: BPMChangeCallback[] = []
-  private syncChangeCallbacks: SyncChangeCallback[] = []
+  private readonly bpmChangeCallbacks: BPMChangeCallback[] = []
+  private readonly syncChangeCallbacks: SyncChangeCallback[] = []
 
   constructor({
     bpm = 270,
@@ -35,15 +35,15 @@ export class BPMSync {
     return this.getSync() ? this.getBPM() : 60
   }
 
-  getBPM(): number {
+  public getBPM(): number {
     return this.bpm
   }
 
-  getSync(): boolean {
+  public getSync(): boolean {
     return this.sync
   }
 
-  setBPM(bpm: number): void {
+  public setBPM(bpm: number): void {
     if (this.bpm !== bpm) {
       this.bpm = bpm
 
@@ -53,7 +53,7 @@ export class BPMSync {
     }
   }
 
-  setSync(sync: boolean): void {
+  public setSync(sync: boolean): void {
     if (this.sync !== sync) {
       this.sync = sync
 
@@ -63,24 +63,33 @@ export class BPMSync {
     }
   }
 
-  onBPMChange(bpmChangeCallback: BPMChangeCallback): void {
+  public onBPMChange(bpmChangeCallback: BPMChangeCallback): void {
     this.bpmChangeCallbacks.push(bpmChangeCallback)
   }
 
-  onSyncChange(syncChangeCallback: SyncChangeCallback): void {
+  public onSyncChange(syncChangeCallback: SyncChangeCallback): void {
     this.syncChangeCallbacks.push(syncChangeCallback)
   }
 
-  offBPMChange(bpmChangeCallback: BPMChangeCallback): void {
-    this.bpmChangeCallbacks = this.bpmChangeCallbacks.filter(
-      (callback: BPMChangeCallback): boolean => callback !== bpmChangeCallback,
+  public offBPMChange(bpmChangeCallback: BPMChangeCallback): void {
+    this.bpmChangeCallbacks.splice(
+      0,
+      this.bpmChangeCallbacks.length,
+      ...this.bpmChangeCallbacks.filter(
+        (callback: BPMChangeCallback): boolean =>
+          callback !== bpmChangeCallback,
+      ),
     )
   }
 
-  offSyncChange(syncChangeCallback: SyncChangeCallback): void {
-    this.syncChangeCallbacks = this.syncChangeCallbacks.filter(
-      (callback: SyncChangeCallback): boolean =>
-        callback !== syncChangeCallback,
+  public offSyncChange(syncChangeCallback: SyncChangeCallback): void {
+    this.syncChangeCallbacks.splice(
+      0,
+      this.syncChangeCallbacks.length,
+      ...this.syncChangeCallbacks.filter(
+        (callback: SyncChangeCallback): boolean =>
+          callback !== syncChangeCallback,
+      ),
     )
   }
 }
