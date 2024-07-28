@@ -16,6 +16,7 @@ export interface SampleOptions {
 
 export class SampleKit {
   static localStorageKeyPrefix: string = 'ゼロ：Sample＿Kit：'
+  static baseName: string = 'Kit'
 
   private status: 'configured' | 'configuring' = 'configuring'
   private readonly audioContext: AudioContext
@@ -24,7 +25,7 @@ export class SampleKit {
   private readonly preset: SampleKitPreset
 
   public id: UUID
-  public name: string = 'Kit'
+  public name: string
 
   public readonly gain: GainNode
 
@@ -50,7 +51,7 @@ export class SampleKit {
     this.status = 'configuring'
 
     this.id = id ?? crypto.randomUUID()
-    this.name = name ?? this.name
+    this.name = name ?? SampleKit.baseName
 
     this.audioContext = audioContext
 

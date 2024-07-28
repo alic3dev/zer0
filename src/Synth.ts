@@ -8,6 +8,7 @@ import { Oscillator } from './Oscillator'
 import { SynthPreset } from './SynthPreset'
 
 export class Synth {
+  static baseName: string = 'Basic Synth'
   static readonly defaults: {
     syncBPM: boolean
     bpm: number
@@ -23,7 +24,7 @@ export class Synth {
     hold: 0.9,
     portamento: 0,
     gainCurve: Object.freeze([0, 1, 1, 0.75, 0.25, 0]),
-    name: 'Basic',
+    name: Synth.baseName,
     polyphony: 1,
     shouldSave: true,
   })
@@ -45,8 +46,8 @@ export class Synth {
 
   private readonly frequencyConstantSourceNode: ConstantSourceNode
 
-  public name: string = Synth.defaults.name
-  public id: UUID = crypto.randomUUID()
+  public name: string
+  public id: UUID
 
   public readonly BPMSync: BPMSync = new BPMSync({
     bpm: Synth.defaults.bpm,
@@ -77,8 +78,8 @@ export class Synth {
     shouldSave?: boolean
   }) {
     this.status = 'configuring'
-    this.id = id ?? this.id
-    this.name = name ?? this.name
+    this.id = id ?? crypto.randomUUID()
+    this.name = name ?? Synth.defaults.name
     this.audioContext = audioContext
     this.channel = channel
 
