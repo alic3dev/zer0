@@ -16,6 +16,9 @@
     "url": "https://alic3.dev"
   },
   "license": "ISC",
+  "dependencies": {
+    "@types/node": "^22.0.0"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.17.0",
     "@typescript-eslint/parser": "^7.17.0",
