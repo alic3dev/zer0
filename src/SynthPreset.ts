@@ -1,9 +1,11 @@
+import type { UUID } from 'crypto'
 export interface SynthPresetValues {
-  id: string
+  id: UUID
   name: string
   oscillators: { type: OscillatorType; volume?: number; offset?: number }[]
   gain: { initial?: number; curve?: number[] }
-  bpm: boolean | number
+  bpm: number
+  bpmSync: boolean
   hold: number
   portamento: number
   channelId?: string
@@ -14,7 +16,8 @@ export class SynthPreset implements SynthPresetValues {
   name: SynthPresetValues['name'] = 'Basic'
   oscillators: SynthPresetValues['oscillators'] = []
   gain: SynthPresetValues['gain'] = {}
-  bpm: SynthPresetValues['bpm'] = true
+  bpm: SynthPresetValues['bpm'] = 270
+  bpmSync: SynthPresetValues['bpmSync'] = true
   hold: SynthPresetValues['hold'] = 0.9
   portamento: SynthPresetValues['portamento'] = 0.0
   channelId: SynthPresetValues['channelId']
@@ -22,14 +25,41 @@ export class SynthPreset implements SynthPresetValues {
   constructor(preset?: Partial<SynthPresetValues>) {
     if (!preset) return
 
-    if (preset.id) this.id = preset.id
-    if (preset.name) this.name = preset.name
-    if (preset.oscillators) this.oscillators = preset.oscillators
-    if (preset.gain) this.gain = preset.gain
-    if (preset.bpm) this.bpm = preset.bpm
-    if (preset.hold) this.hold = preset.hold
-    if (preset.portamento) this.portamento = preset.portamento
-    if (preset.channelId) this.channelId = preset.channelId
+    if (typeof preset.id !== 'undefined') {
+      this.id = preset.id
+    }
+
+    if (typeof preset.name !== 'undefined') {
+      this.name = preset.name
+    }
+
+    if (typeof preset.oscillators !== 'undefined') {
+      this.oscillators = preset.oscillators
+    }
+
+    if (typeof preset.gain !== 'undefined') {
+      this.gain = preset.gain
+    }
+
+    if (typeof preset.bpm !== 'undefined') {
+      this.bpm = preset.bpm
+    }
+
+    if (typeof preset.bpmSync !== 'undefined') {
+      this.bpmSync = preset.bpmSync
+    }
+
+    if (typeof preset.hold !== 'undefined') {
+      this.hold = preset.hold
+    }
+
+    if (typeof preset.portamento !== 'undefined') {
+      this.portamento = preset.portamento
+    }
+
+    if (typeof preset.channelId !== 'undefined') {
+      this.channelId = preset.channelId
+    }
   }
 
   asObject(): SynthPresetValues {
@@ -39,6 +69,7 @@ export class SynthPreset implements SynthPresetValues {
       oscillators: this.oscillators,
       gain: this.gain,
       bpm: this.bpm,
+      bpmSync: this.bpmSync,
       hold: this.hold,
       portamento: this.portamento,
     }
