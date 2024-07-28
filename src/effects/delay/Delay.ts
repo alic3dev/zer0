@@ -3,8 +3,8 @@ import type { UUID } from 'crypto'
 import { AutomatableParameter } from '../../AutomatableParameter'
 import { Effect } from '../../Effect'
 
-export class DelayReverb extends Effect {
-  static baseName: string = 'Delay Reverb'
+export class Delay extends Effect {
+  static baseName: string = 'Delay'
 
   static readonly MAX_DELAY_TIME: number = 179
 
@@ -16,7 +16,7 @@ export class DelayReverb extends Effect {
   constructor({
     audioContext,
     id,
-    name = 'Delay Reverb',
+    name = Delay.baseName,
     output = audioContext.destination,
   }: {
     audioContext: AudioContext
@@ -28,11 +28,13 @@ export class DelayReverb extends Effect {
 
     this.output = output
 
-    this.delayNode = this.audioContext.createDelay(DelayReverb.MAX_DELAY_TIME)
-    this.setDelayTime(this.delayTime)
-
-    this.decayGainNode = this.audioContext.createGain()
-    this.decayGainNode.gain.value = this.decayAmount
+    this.delayNode = new DelayNode(this.audioContext, {
+      delayTime: this.delayTime,
+      maxDelayTime: Delay.MAX_DELAY_TIME,
+    })
+    this.decayGainNode = new GainNode(this.audioContext, {
+      gain: this.decayAmount,
+    })
 
     this.destination.connect(this.delayNode)
     this.delayNode.connect(this.wetGainNode)
@@ -66,8 +68,8 @@ export class DelayReverb extends Effect {
   }
 
   public setDelayTime(delayTime: number): void {
-    if (delayTime > DelayReverb.MAX_DELAY_TIME) {
-      delayTime = DelayReverb.MAX_DELAY_TIME
+    if (delayTime > Delay.MAX_DELAY_TIME) {
+      delayTime = Delay.MAX_DELAY_TIME
     } else if (delayTime < 0) {
       delayTime = 0
     }

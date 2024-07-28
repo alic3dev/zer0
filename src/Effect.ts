@@ -4,6 +4,8 @@ import { BPMSync } from './BPMSync'
 import { AutomatableParameter } from './AutomatableParameter'
 
 export abstract class Effect {
+  static baseName: string = 'Effect'
+
   public id: UUID
   public name: string
 

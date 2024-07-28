@@ -1,6 +1,7 @@
 import { DelayReverb } from './effects/reverb/DelayReverb'
 import { Effect } from './Effect'
 import { BPMSync } from './BPMSync'
+import { PossibleEffect } from 'effects'
 
 export class EffectChain {
   private readonly audioContext: AudioContext
@@ -37,12 +38,6 @@ export class EffectChain {
     for (const effect of effects) {
       this.addEffect(effect)
     }
-
-    this.addEffect(
-      new DelayReverb({
-        audioContext: this.audioContext,
-      }),
-    )
   }
 
   private onBPMChange(bpm: number): void {
@@ -51,20 +46,25 @@ export class EffectChain {
     }
   }
 
-  public addEffect(effect: Effect): void {
+  public addEffect(effect: Effect | PossibleEffect): void {
+    const _effect: Effect =
+      effect instanceof Effect
+        ? effect
+        : new effect({ audioContext: this.audioContext })
+
     const lastEffect: Effect | undefined = this.effects[this.effects.length - 1]
 
     if (lastEffect) {
-      lastEffect.connect(effect)
+      lastEffect.connect(_effect)
     } else {
       this.gain.disconnect(this.output)
-      this.gain.connect(effect.destination)
+      this.gain.connect(_effect.destination)
     }
 
-    effect.BPMSync.setBPM(this.BPMSync.getBPM())
+    _effect.BPMSync.setBPM(this.BPMSync.getBPM())
 
-    effect.connect(this.output)
+    _effect.connect(this.output)
 
-    this.effects.push(effect)
+    this.effects.push(_effect)
   }
 }

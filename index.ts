@@ -1,3 +1,8 @@
+export type {
+  EffectListItem,
+  EffectListItemEffect,
+  EffectLookup,
+} from './src/effects'
 export type { SynthPresetValues } from './src/SynthPreset'
 export type { SampleKitPresetValues } from './src/SampleKitPreset'
 export type { Octave, Note, FrequencyRootName } from './src/utils'
@@ -16,8 +21,4 @@ export { Synth } from './src/Synth'
 export { SynthPreset } from './src/SynthPreset'
 export { utils } from './src/utils'
 
-import { filter, reverb } from './src/effects'
-export const effects = {
-  filter,
-  reverb,
-}
+export { effects, effectsList } from './src/effects'
