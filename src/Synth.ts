@@ -1,3 +1,6 @@
+import type { UUID } from 'crypto'
+
+import { BPMSync } from './BPMSync'
 import { Channel } from './Channel'
 import { Oscillator } from './Oscillator'
 import { SynthPreset, SynthPresetValues } from './SynthPreset'
@@ -14,7 +17,7 @@ export class Synth {
     shouldSave: boolean
   } = Object.freeze({
     syncBPM: true,
-    bpm: 90,
+    bpm: 270,
     hold: 0.9,
     portamento: 0,
     gainCurve: Object.freeze([0, 1, 1, 0.75, 0.25, 0]),
@@ -26,8 +29,14 @@ export class Synth {
   private output: AudioNode
   private status: 'configured' | 'configuring' = 'configuring'
 
-  private syncBPM: boolean = Synth.defaults.syncBPM
-  private bpm: number = Synth.defaults.bpm
+  readonly BPMSync: BPMSync = new BPMSync({
+    bpm: Synth.defaults.bpm,
+    sync: Synth.defaults.syncBPM,
+
+    onBPMChange: this.onBPMChange.bind(this),
+    onSyncChange: this.onBPMSyncChange.bind(this),
+  })
+
   private hold: number = Synth.defaults.hold
   // TODO: Add Attack Decay Sustain Release (Per OSC?)
   private portamento: number = Synth.defaults.portamento
@@ -44,10 +53,11 @@ export class Synth {
   readonly frequencyConstantSourceNode: ConstantSourceNode
 
   public name: string = Synth.defaults.name
-  public id: string = crypto.randomUUID()
+  public id: UUID = crypto.randomUUID()
 
   constructor({
     audioContext,
+    id,
     name,
     channel,
     output,
@@ -55,6 +65,7 @@ export class Synth {
     shouldSave = true,
   }: {
     audioContext: AudioContext
+    id?: UUID
     name?: string
     channel?: Channel
     output?: AudioNode
@@ -62,6 +73,7 @@ export class Synth {
     shouldSave?: boolean
   }) {
     this.status = 'configuring'
+    this.id = id ?? this.id
     this.name = name ?? this.name
     this.audioContext = audioContext
     this.channel = channel
@@ -114,12 +126,8 @@ export class Synth {
       this.gainCurve = this.preset.gain.curve
     }
 
-    if (typeof this.preset.bpm === 'number') {
-      this.setBPM(this.preset.bpm)
-      this.setBPMSync(true)
-    } else {
-      this.setBPMSync(this.preset.bpm)
-    }
+    this.BPMSync.setBPM(this.preset.bpm)
+    this.BPMSync.setSync(this.preset.bpmSync)
 
     for (const oscillator of this.preset.oscillators) {
       this.addOscillator(oscillator.type, oscillator.volume, oscillator.offset)
@@ -139,11 +147,26 @@ export class Synth {
         initial: 0,
         curve: this.gainCurve,
       },
-      bpm: this.bpm,
+      bpm: this.BPMSync.getBPM(),
+      bpmSync: this.BPMSync.getSync(),
       hold: this.hold,
       portamento: this.portamento,
       oscillators: [{ type: 'sine' }],
       channelId: this.channel?.id,
+    }
+  }
+
+  private onBPMChange(): void {
+    if (this.status === 'configured') {
+      this.preset.bpm = this.BPMSync.getBPM()
+      this.savePreset()
+    }
+  }
+
+  private onBPMSyncChange(): void {
+    if (this.status === 'configured') {
+      this.preset.bpmSync = this.BPMSync.getSync()
+      this.savePreset()
     }
   }
 
@@ -159,32 +182,6 @@ export class Synth {
 
     if (this.status === 'configured') {
       this.preset.channelId = this.channel.id
-      this.savePreset()
-    }
-  }
-
-  getBPM(): number {
-    return this.bpm
-  }
-
-  setBPM(bpm: number = 90): void {
-    this.bpm = bpm
-
-    if (this.status === 'configured') {
-      this.preset.bpm = this.bpm
-      this.savePreset()
-    }
-  }
-
-  getBPMSync(): boolean {
-    return this.syncBPM
-  }
-
-  setBPMSync(syncBPM: boolean): void {
-    this.syncBPM = syncBPM
-
-    if (this.status === 'configured') {
-      this.preset.bpm = this.syncBPM ? this.bpm || true : false
       this.savePreset()
     }
   }
@@ -307,20 +304,21 @@ export class Synth {
 
   playNote(frequency: number, offset: number = 0, duration: number = 1): void {
     const timeToPlay: number =
-      this.audioContext.currentTime + offset * (60 / this.bpm)
+      this.audioContext.currentTime +
+      offset * (60 / this.BPMSync.getUsableBPM())
 
     this.frequencyConstantSourceNode.offset.cancelScheduledValues(timeToPlay)
     this.frequencyConstantSourceNode.offset.setTargetAtTime(
       frequency,
       timeToPlay,
-      ((60 * this.portamento) / this.bpm) * duration,
+      ((60 * this.portamento) / this.BPMSync.getUsableBPM()) * duration,
     )
 
     this.gain.gain.cancelScheduledValues(timeToPlay)
     this.gain.gain.setValueCurveAtTime(
       this.gainCurve,
       timeToPlay,
-      ((60 * this.hold) / this.bpm) * duration,
+      ((60 * this.hold) / this.BPMSync.getUsableBPM()) * duration,
     )
   }
 
@@ -350,18 +348,6 @@ export class Synth {
       save()
     }
   }
-
-  // private loadFromPreset(preset: SynthPreset): void {
-  //   this.status = 'configuring'
-
-  //   if (preset === this.preset) throw new Error('Preset already loaded')
-
-  //   this.preset = preset
-
-  //   this.configure()
-
-  //   this.status = 'configured'
-  // }
 
   static localStorageKeyPrefix: string = 'ゼロ：Synth：'
 }
