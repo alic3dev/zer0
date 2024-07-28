@@ -45,10 +45,11 @@ export class Channel {
     this.audioContext = audioContext
     this.output = output
 
-    this.gain = this.audioContext.createGain()
+    this.gain = new GainNode(this.audioContext)
 
-    this.analyser = this.audioContext.createAnalyser()
-    this.analyser.fftSize = Channel.FFT_SIZE
+    this.analyser = new AnalyserNode(this.audioContext, {
+      fftSize: Channel.FFT_SIZE,
+    })
 
     if (withAnalyser) {
       this.ANALYSER_BUFFER_LENGTH = this.analyser.frequencyBinCount

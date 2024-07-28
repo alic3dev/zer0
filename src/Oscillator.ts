@@ -19,15 +19,16 @@ export class Oscillator {
     this._type = type
     this.output = output
 
-    this._gain = this.audioContext.createGain()
-    this._gain.gain.value = volume
+    this._gain = new GainNode(this.audioContext, { gain: volume })
+
+    this.oscillator = new OscillatorNode(this.audioContext, {
+      type: this._type,
+      frequency: offset,
+    })
+
     this._gain.connect(this.output)
-
-    this.oscillator = this.audioContext.createOscillator()
-    this.oscillator.type = this._type
-    this.oscillator.frequency.value = offset
-
     this.oscillator.connect(this._gain)
+
     this.oscillator.start()
   }
 

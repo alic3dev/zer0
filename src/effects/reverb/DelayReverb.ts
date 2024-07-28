@@ -28,11 +28,13 @@ export class DelayReverb extends Effect {
 
     this.output = output
 
-    this.delayNode = this.audioContext.createDelay(DelayReverb.MAX_DELAY_TIME)
-    this.setDelayTime(this.delayTime)
-
-    this.decayGainNode = this.audioContext.createGain()
-    this.decayGainNode.gain.value = this.decayAmount
+    this.delayNode = new DelayNode(this.audioContext, {
+      delayTime: this.getUsableDelayTime(),
+      maxDelayTime: DelayReverb.MAX_DELAY_TIME,
+    })
+    this.decayGainNode = new GainNode(this.audioContext, {
+      gain: this.decayAmount,
+    })
 
     this.destination.connect(this.delayNode)
     this.delayNode.connect(this.wetGainNode)
@@ -65,6 +67,10 @@ export class DelayReverb extends Effect {
     return this.delayTime
   }
 
+  public getUsableDelayTime(delayTime: number = this.delayTime): number {
+    return (60 * delayTime) / this.BPMSync.getUsableBPM()
+  }
+
   public setDelayTime(delayTime: number): void {
     if (delayTime > DelayReverb.MAX_DELAY_TIME) {
       delayTime = DelayReverb.MAX_DELAY_TIME
@@ -73,8 +79,7 @@ export class DelayReverb extends Effect {
     }
 
     this.delayTime = delayTime
-    this.delayNode.delayTime.value =
-      (60 * this.delayTime) / this.BPMSync.getUsableBPM()
+    this.delayNode.delayTime.value = this.getUsableDelayTime()
   }
 
   public getDecayAmount(): number {

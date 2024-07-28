@@ -90,8 +90,7 @@ export class Synth {
       this.output = this.audioContext.destination
     }
 
-    this.gain = this.audioContext.createGain()
-    this.gain.gain.value = 0
+    this.gain = new GainNode(this.audioContext, { gain: 0 })
     this.gain.connect(this.output)
 
     this.shouldSave = shouldSave
@@ -106,8 +105,9 @@ export class Synth {
       this.preset = new SynthPreset(this.getDefaultPreset())
     }
 
-    this.frequencyConstantSourceNode = audioContext.createConstantSource()
-    this.frequencyConstantSourceNode.offset.value = 440
+    this.frequencyConstantSourceNode = new ConstantSourceNode(audioContext, {
+      offset: 440,
+    })
 
     this.configure()
 

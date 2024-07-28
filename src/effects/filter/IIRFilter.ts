@@ -13,7 +13,11 @@ export class IIRFilter extends Effect {
     output?: AudioNode
   }) {
     super({ audioContext, output })
-    this.iirFilter = this.audioContext.createIIRFilter([], [])
+
+    this.iirFilter = new IIRFilterNode(this.audioContext, {
+      feedback: [],
+      feedforward: [],
+    })
     this.iirFilter.connect(this.output)
   }
 }

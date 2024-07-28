@@ -9,20 +9,23 @@ export class Sample {
   private onReadyCallbacks: (() => void)[] = []
   private sampleAudioBuffer?: AudioBuffer
 
-  constructor(
-    audioContext: AudioContext,
-    sampleInput?: RequestInfo | URL,
-    output: AudioNode = audioContext.destination,
-  ) {
+  constructor({
+    audioContext,
+    input,
+    output = audioContext.destination,
+  }: {
+    audioContext: AudioContext
+    input?: RequestInfo | URL
+    output?: AudioNode
+  }) {
     this.audioContext = audioContext
     this.output = output
 
-    this.gain = this.audioContext.createGain()
-    this.gain.gain.value = 1
+    this.gain = new GainNode(this.audioContext, { gain: 1 })
     this.gain.connect(this.output)
 
-    if (sampleInput) {
-      this.fetchSample(sampleInput)
+    if (input) {
+      this.fetchSample(input)
     }
   }
 
@@ -67,8 +70,10 @@ export class Sample {
 
     this.gain.gain.setValueAtTime(gain, playAtTime)
 
-    const source: AudioBufferSourceNode = this.audioContext.createBufferSource()
-    source.buffer = this.sampleAudioBuffer
+    const source: AudioBufferSourceNode = new AudioBufferSourceNode(
+      this.audioContext,
+      { buffer: this.sampleAudioBuffer },
+    )
     source.connect(this.gain)
     source.start(playAtTime)
   }

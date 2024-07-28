@@ -14,7 +14,8 @@ export class BiquadFilter extends Effect {
   }) {
     super({ audioContext, output })
 
-    this.biquadFilter = this.audioContext.createBiquadFilter()
+    this.biquadFilter = new BiquadFilterNode(this.audioContext)
+
     this.biquadFilter.connect(this.output)
   }
 }

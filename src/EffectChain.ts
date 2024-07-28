@@ -1,4 +1,3 @@
-import { DelayReverb } from './effects/reverb/DelayReverb'
 import { Effect } from './Effect'
 import { BPMSync } from './BPMSync'
 import { PossibleEffect } from 'effects'
@@ -28,7 +27,7 @@ export class EffectChain {
     this.BPMSync = BPMSync
     this.BPMSync.onBPMChange(this.onBPMChange.bind(this))
 
-    this.gain = this.audioContext.createGain()
+    this.gain = new GainNode(this.audioContext)
 
     this.destination = this.gain
     this.output = output

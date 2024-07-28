@@ -64,8 +64,7 @@ export class SampleKit {
       this.output = audioContext.destination
     }
 
-    this.gain = this.audioContext.createGain()
-    this.gain.gain.value = 1
+    this.gain = new GainNode(this.audioContext, { gain: 1 })
     this.gain.connect(this.output)
 
     this.samples = {}
@@ -210,11 +209,14 @@ export class SampleKit {
       input = sample.input ?? input
     }
 
-    const sampleGain: GainNode = this.audioContext.createGain()
-    sampleGain.gain.value = gain
+    const sampleGain: GainNode = new GainNode(this.audioContext, { gain })
     sampleGain.connect(output)
 
-    this.samples[sampleKey] = new Sample(this.audioContext, input, sampleGain)
+    this.samples[sampleKey] = new Sample({
+      audioContext: this.audioContext,
+      input,
+      output: sampleGain,
+    })
 
     if (this.preset) {
       this.preset.samples[sampleKey] = this.samples[sampleKey]

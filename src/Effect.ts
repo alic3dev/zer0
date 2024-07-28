@@ -35,16 +35,13 @@ export abstract class Effect {
     this.id = id
     this.name = name
 
-    this.destination = audioContext.createGain()
+    this.destination = new GainNode(audioContext)
     this.output = output
 
-    this.dryGainNode = this.audioContext.createGain()
-    this.dryGainNode.gain.value = 1 - this.mix
-    this.wetGainNode = this.audioContext.createGain()
-    this.wetGainNode.gain.value = this.mix
+    this.dryGainNode = new GainNode(this.audioContext, { gain: 1 - this.mix })
+    this.wetGainNode = new GainNode(this.audioContext, { gain: this.mix })
 
     this.destination.connect(this.dryGainNode)
-
     this.dryGainNode.connect(this.output)
     this.wetGainNode.connect(this.output)
 
