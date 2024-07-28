@@ -1,20 +1,84 @@
-export class Effect {
-  readonly audioContext: AudioContext
-  input: AudioNode
+import type { UUID } from 'crypto'
 
-  output: AudioNode
+import { BPMSync } from './BPMSync'
+import { AutomatableParameter } from './AutomatableParameter'
 
-  constructor(
-    audioContext: AudioContext,
-    input: AudioNode,
-    output: AudioNode = audioContext.destination,
-  ) {
+export abstract class Effect {
+  public id: UUID
+  public name: string
+
+  public readonly audioContext: AudioContext
+  public readonly destination: AudioNode
+  public readonly BPMSync: BPMSync = new BPMSync({})
+  public readonly parameters: AutomatableParameter[] = []
+
+  protected output: AudioNode
+  protected dryGainNode: GainNode
+  protected wetGainNode: GainNode
+  protected mix: number = 1 / 3
+
+  constructor({
+    audioContext,
+    id = crypto.randomUUID(),
+    name = 'Effect',
+    output = audioContext.destination,
+  }: {
+    audioContext: AudioContext
+    id?: UUID
+    name?: string
+    output?: AudioNode
+  }) {
     this.audioContext = audioContext
-    this.input = input
+
+    this.id = id
+    this.name = name
+
+    this.destination = audioContext.createGain()
     this.output = output
+
+    this.dryGainNode = this.audioContext.createGain()
+    this.dryGainNode.gain.value = 1 - this.mix
+    this.wetGainNode = this.audioContext.createGain()
+    this.wetGainNode.gain.value = this.mix
+
+    this.destination.connect(this.dryGainNode)
+
+    this.dryGainNode.connect(this.output)
+    this.wetGainNode.connect(this.output)
+
+    this.parameters.push(
+      new AutomatableParameter<boolean>({
+        name: 'BPM Sync',
+        type: 'boolean',
+        getValue: (): boolean => this.BPMSync.getSync(),
+        setValue: (sync: boolean): void => {
+          this.BPMSync.setSync(sync)
+        },
+      }),
+      new AutomatableParameter<number>({
+        name: 'Mix',
+        control: 'slider',
+        getValue: (): number => this.mix,
+        setValue: (mix: number): void => {
+          this.mix = mix
+          this.dryGainNode.gain.value = 1 - this.mix
+          this.wetGainNode.gain.value = this.mix
+        },
+      }),
+    )
   }
 
-  connect(output: AudioNode) {
-    this.output = output
+  public connect(output: AudioNode | Effect): void {
+    this.dryGainNode.disconnect(this.output)
+    this.wetGainNode.disconnect(this.output)
+
+    if (output instanceof AudioNode) {
+      this.output = output
+    } else {
+      this.output = output.output
+    }
+
+    this.dryGainNode.connect(this.output)
+    this.wetGainNode.connect(this.output)
   }
 }
