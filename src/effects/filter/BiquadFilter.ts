@@ -1,3 +1,5 @@
+import type { UUID } from 'crypto'
+
 import { Effect } from '../../Effect'
 
 export class BiquadFilter extends Effect {
@@ -7,12 +9,16 @@ export class BiquadFilter extends Effect {
 
   constructor({
     audioContext,
+    id,
+    name = BiquadFilter.baseName,
     output = audioContext.destination,
   }: {
     audioContext: AudioContext
+    id?: UUID
+    name?: string
     output?: AudioNode
   }) {
-    super({ audioContext, output })
+    super({ audioContext, output, id, name })
 
     this.biquadFilter = new BiquadFilterNode(this.audioContext)
 

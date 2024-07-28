@@ -1,3 +1,5 @@
+import type { UUID } from 'crypto'
+
 import { Effect } from '../../Effect'
 
 export class IIRFilter extends Effect {
@@ -7,12 +9,16 @@ export class IIRFilter extends Effect {
 
   constructor({
     audioContext,
+    id,
+    name = IIRFilter.baseName,
     output = audioContext.destination,
   }: {
     audioContext: AudioContext
+    id?: UUID
+    name?: string
     output?: AudioNode
   }) {
-    super({ audioContext, output })
+    super({ audioContext, output, id, name })
 
     this.iirFilter = new IIRFilterNode(this.audioContext, {
       feedback: [],
