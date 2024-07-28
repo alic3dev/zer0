@@ -16,20 +16,40 @@ export interface SampleKitPresetValuesParsed
 }
 
 export class SampleKitPreset implements SampleKitPresetValues {
-  public id: SampleKitPresetValues['id'] = crypto.randomUUID()
-  public name: SampleKitPresetValues['name'] = 'Basic Kit'
-  public samples: SampleKitPresetValues['samples'] = {}
-  public gain: SampleKitPresetValues['gain'] = {}
+  public id: SampleKitPresetValues['id']
+  public name: SampleKitPresetValues['name']
+  public samples: SampleKitPresetValues['samples']
+  public gain: SampleKitPresetValues['gain']
   public channelId: SampleKitPresetValues['channelId']
 
-  constructor(preset?: Partial<SampleKitPresetValues>) {
-    if (!preset) return
+  static readonly defaultPresetValues: Readonly<SampleKitPresetValues> =
+    Object.freeze({
+      id: crypto.randomUUID(),
+      name: 'Basic Kit',
+      samples: {},
+      gain: {},
+    })
 
-    if (preset.id) this.id = preset.id
-    if (preset.name) this.name = preset.name
-    if (preset.gain) this.gain = preset.gain
-    if (preset.samples) this.samples = preset.samples
-    if (preset.channelId) this.channelId = preset.channelId
+  constructor(preset: Partial<SampleKitPresetValues> = {}) {
+    const _preset: SampleKitPresetValues = {
+      ...SampleKitPreset.getDefaultPresetValues(),
+      ...preset,
+    }
+
+    this.id = _preset.id
+    this.name = _preset.name
+    this.gain = _preset.gain
+    this.samples = _preset.samples
+    this.channelId = _preset.channelId
+  }
+
+  private static getDefaultPresetValues(): SampleKitPresetValues {
+    return {
+      ...SampleKitPreset.defaultPresetValues,
+      id: crypto.randomUUID(),
+      samples: { ...SampleKitPreset.defaultPresetValues.samples },
+      gain: { ...SampleKitPreset.defaultPresetValues.gain },
+    }
   }
 
   public asObject(): SampleKitPresetValuesParsed {

@@ -13,53 +13,51 @@ export interface SynthPresetValues {
 }
 
 export class SynthPreset implements SynthPresetValues {
-  public id: SynthPresetValues['id'] = crypto.randomUUID()
-  public name: SynthPresetValues['name'] = 'Basic'
-  public oscillators: SynthPresetValues['oscillators'] = []
-  public gain: SynthPresetValues['gain'] = {}
-  public bpm: SynthPresetValues['bpm'] = 270
-  public bpmSync: SynthPresetValues['bpmSync'] = true
-  public hold: SynthPresetValues['hold'] = 0.9
-  public portamento: SynthPresetValues['portamento'] = 0.0
+  public id: SynthPresetValues['id']
+  public name: SynthPresetValues['name']
+  public oscillators: SynthPresetValues['oscillators']
+  public gain: SynthPresetValues['gain']
+  public bpm: SynthPresetValues['bpm']
+  public bpmSync: SynthPresetValues['bpmSync']
+  public hold: SynthPresetValues['hold']
+  public portamento: SynthPresetValues['portamento']
   public channelId: SynthPresetValues['channelId']
 
-  constructor(preset?: Partial<SynthPresetValues>) {
-    if (!preset) return
+  static readonly defaultPresetValues: Readonly<SynthPresetValues> =
+    Object.freeze({
+      id: crypto.randomUUID(),
+      name: 'Basic',
+      oscillators: [],
+      gain: {},
+      bpm: 270,
+      bpmSync: true,
+      hold: 0.9,
+      portamento: 0,
+    })
 
-    if (typeof preset.id !== 'undefined') {
-      this.id = preset.id
+  constructor(preset: Partial<SynthPresetValues> = {}) {
+    const _preset: SynthPresetValues = {
+      ...SynthPreset.getDefaultPresetValues(),
+      ...preset,
     }
 
-    if (typeof preset.name !== 'undefined') {
-      this.name = preset.name
-    }
+    this.id = _preset.id ?? crypto.randomUUID()
+    this.name = _preset.name
+    this.oscillators = _preset.oscillators
+    this.gain = _preset.gain
+    this.bpm = _preset.bpm
+    this.bpmSync = _preset.bpmSync
+    this.hold = _preset.hold
+    this.portamento = _preset.portamento
+    this.channelId = _preset.channelId
+  }
 
-    if (typeof preset.oscillators !== 'undefined') {
-      this.oscillators = preset.oscillators
-    }
-
-    if (typeof preset.gain !== 'undefined') {
-      this.gain = preset.gain
-    }
-
-    if (typeof preset.bpm !== 'undefined') {
-      this.bpm = preset.bpm
-    }
-
-    if (typeof preset.bpmSync !== 'undefined') {
-      this.bpmSync = preset.bpmSync
-    }
-
-    if (typeof preset.hold !== 'undefined') {
-      this.hold = preset.hold
-    }
-
-    if (typeof preset.portamento !== 'undefined') {
-      this.portamento = preset.portamento
-    }
-
-    if (typeof preset.channelId !== 'undefined') {
-      this.channelId = preset.channelId
+  private static getDefaultPresetValues(): SynthPresetValues {
+    return {
+      ...SynthPreset.defaultPresetValues,
+      id: crypto.randomUUID(),
+      oscillators: [...SynthPreset.defaultPresetValues.oscillators],
+      gain: { ...SynthPreset.defaultPresetValues.gain },
     }
   }
 
