@@ -3,6 +3,7 @@ export type { SampleKitPresetValues } from './src/SampleKitPreset'
 export type { Octave, Note, FrequencyRootName } from './src/utils'
 export type { ScaleName } from './src/utils/Scales'
 
+export { AutomatableParameter } from './src/AutomatableParameter'
 export { Channel } from './src/Channel'
 export { Effect } from './src/Effect'
 export { Noise } from './src/Noise'
