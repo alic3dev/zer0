@@ -1,1 +1,0 @@
-export { BasicSynth } from './Basic'
