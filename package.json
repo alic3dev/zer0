@@ -2,6 +2,21 @@
   "name": "zer0",
   "version": "0.1.1",
   "description": "A library for interacting with the Web Audio API.",
+  "author": {
+    "name": "alic3dev",
+    "email": "alice@alic3.dev",
+    "url": "https://alic3.dev"
+  },
+  "repository": "github:alic3dev/zer0",
+  "bugs": {
+    "url": "https://github.com/alic3dev/zer0/issues",
+    "email": "bug@alic3.dev"
+  },
+  "keywords": [
+    "ZER0",
+    "Web Audio"
+  ],
+  "license": "ISC",
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
@@ -9,13 +24,6 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "clean": "rm -r build"
   },
-  "keywords": [],
-  "author": {
-    "email": "alic3dev@gmail.com",
-    "name": "alic3dev",
-    "url": "https://alic3.dev"
-  },
-  "license": "ISC",
   "dependencies": {
     "@types/node": "^22.0.0"
   },
