@@ -68,6 +68,7 @@ export class Sample {
 
     const playAtTime: number = this.audioContext.currentTime + offset
 
+    this.gain.gain.cancelScheduledValues(playAtTime)
     this.gain.gain.setValueAtTime(gain, playAtTime)
 
     const source: AudioBufferSourceNode = new AudioBufferSourceNode(
