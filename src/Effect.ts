@@ -60,6 +60,7 @@ export abstract class Effect {
         getValue: (): number => this.mix,
         setValue: (mix: number): void => {
           this.mix = mix
+
           this.dryGainNode.gain.value = 1 - this.mix
           this.wetGainNode.gain.value = this.mix
         },
@@ -74,7 +75,7 @@ export abstract class Effect {
     if (output instanceof AudioNode) {
       this.output = output
     } else {
-      this.output = output.output
+      this.output = output.destination
     }
 
     this.dryGainNode.connect(this.output)
