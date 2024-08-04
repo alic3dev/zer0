@@ -26,8 +26,6 @@ export class Delay extends Effect {
   }) {
     super({ audioContext, output, id, name })
 
-    this.output = output
-
     this.delayNode = new DelayNode(this.audioContext, {
       delayTime: this.delayTime,
       maxDelayTime: Delay.MAX_DELAY_TIME,
