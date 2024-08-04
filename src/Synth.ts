@@ -4,6 +4,7 @@ import type { Channel } from './Channel'
 import type { SynthPresetValues } from './SynthPreset'
 
 import { BPMSync } from './BPMSync'
+import { EffectChain } from './EffectChain'
 import { Oscillator } from './Oscillator'
 import { SynthPreset } from './SynthPreset'
 
@@ -49,6 +50,8 @@ export class Synth {
   public name: string
   public id: UUID
 
+  public readonly effectChain: EffectChain
+
   public readonly BPMSync: BPMSync = new BPMSync({
     bpm: Synth.defaults.bpm,
     sync: Synth.defaults.syncBPM,
@@ -93,6 +96,12 @@ export class Synth {
 
     this.gain = new GainNode(this.audioContext, { gain: 0 })
     this.gain.connect(this.output)
+
+    this.effectChain = new EffectChain({
+      audioContext,
+      BPMSync: this.BPMSync,
+      output: this.gain,
+    })
 
     this.shouldSave = shouldSave
 
@@ -321,7 +330,7 @@ export class Synth {
     const oscillator = new Oscillator(
       this.audioContext,
       { type, volume, offset },
-      this.gain,
+      this.effectChain.destination,
     )
 
     this.frequencyConstantSourceNode.connect(oscillator.frequency)
