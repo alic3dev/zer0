@@ -4,6 +4,7 @@ import { Effect } from '../../Effect'
 
 export class IIRFilter extends Effect {
   static baseName: string = 'IIR Filter'
+  static id: UUID = '059c48cc-5c96-4747-b788-0b886a6fc81a'
 
   private readonly iirFilter: IIRFilterNode
 
