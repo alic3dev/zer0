@@ -44,9 +44,9 @@ export const frequencyRootNames: FrequencyRootName[] = Object.keys(
 ) as FrequencyRootName[]
 
 export function createNoteTable(
-  startingOctave: number = 0,
-  endingOctave: number = 10,
-  frequency: number = 440,
+  startingOctave = 0,
+  endingOctave = 10,
+  frequency = 440,
 ): Octave[] {
   const noteTable: Octave[] = []
 
