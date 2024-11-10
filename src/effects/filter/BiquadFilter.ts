@@ -4,6 +4,7 @@ import { Effect } from '../../Effect'
 
 export class BiquadFilter extends Effect {
   static baseName: string = 'Biquad Filter'
+  static id: UUID = 'fb1891e9-51b4-49ed-9edb-7398dd893179'
 
   private readonly biquadFilter: BiquadFilterNode
 
