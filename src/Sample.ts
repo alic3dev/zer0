@@ -9,44 +9,81 @@ export class Sample {
   private onReadyCallbacks: (() => void)[] = []
   private sampleAudioBuffer?: AudioBuffer
 
-  constructor(
-    audioContext: AudioContext,
-    sampleInput?: RequestInfo | URL,
-    output: AudioNode = audioContext.destination,
-  ) {
+  constructor({
+    audioContext,
+    input,
+    output = audioContext.destination,
+  }: {
+    audioContext: AudioContext
+    input?: RequestInfo | URL
+    output?: AudioNode
+  }) {
     this.audioContext = audioContext
     this.output = output
 
-    this.gain = this.audioContext.createGain()
-    this.gain.gain.value = 1
+    this.gain = new GainNode(this.audioContext, { gain: 1 })
     this.gain.connect(this.output)
 
-    if (sampleInput) this.#fetchSample(sampleInput)
+    if (input) {
+      this.fetchSample(input)
+    }
   }
 
-  getOutput(): AudioNode {
+  public getOutput(): AudioNode {
     return this.output
   }
 
-  setOutput(output: AudioNode): void {
+  public setOutput(output: AudioNode): void {
     this.gain.disconnect(this.output)
     this.output = output
     this.gain.connect(this.output)
   }
 
-  getUrl(): RequestInfo | URL | undefined {
+  public getUrl(): RequestInfo | URL | undefined {
     return this.url
   }
 
-  async setUrl(url: RequestInfo | URL): Promise<void> {
-    return await this.#fetchSample(url)
+  public async setUrl(url: RequestInfo | URL): Promise<void> {
+    return await this.fetchSample(url)
   }
 
-  async #fetchSample(input: RequestInfo | URL): Promise<void> {
+  public async isReady(): Promise<void> {
+    await new Promise<void>((resolve: () => void): void => {
+      this.onReadyCallbacks.push(resolve)
+    })
+  }
+
+  public isReadySync(): boolean {
+    return this.ready ?? false
+  }
+
+  public onReady(onReadyCallback: () => void): void {
+    this.onReadyCallbacks.push(onReadyCallback)
+  }
+
+  public play(offset: number = 0, gain: number = 1.0): void {
+    if (!this.sampleAudioBuffer) {
+      throw new Error('Sample not buffered')
+    }
+
+    const playAtTime: number = this.audioContext.currentTime + offset
+
+    this.gain.gain.cancelScheduledValues(playAtTime)
+    this.gain.gain.setValueAtTime(gain, playAtTime)
+
+    const source: AudioBufferSourceNode = new AudioBufferSourceNode(
+      this.audioContext,
+      { buffer: this.sampleAudioBuffer },
+    )
+    source.connect(this.gain)
+    source.start(playAtTime)
+  }
+
+  private async fetchSample(input: RequestInfo | URL): Promise<void> {
     this.url = input
 
-    const res = await fetch(input)
-    const arrayBuffer = await res.arrayBuffer()
+    const res: Response = await fetch(input)
+    const arrayBuffer: ArrayBuffer = await res.arrayBuffer()
 
     this.sampleAudioBuffer = await this.audioContext.decodeAudioData(
       arrayBuffer,
@@ -59,32 +96,5 @@ export class Sample {
     }
 
     this.onReadyCallbacks.splice(0)
-  }
-
-  async isReady(): Promise<void> {
-    await new Promise<void>((resolve) => this.onReadyCallbacks.push(resolve))
-  }
-
-  isReadySync(): boolean {
-    return this.ready ?? false
-  }
-
-  onReady(onReadyCallback: () => void) {
-    this.onReadyCallbacks.push(onReadyCallback)
-  }
-
-  play(offset: number = 0, gain: number = 1.0): void {
-    if (!this.sampleAudioBuffer) {
-      throw new Error('Sample not buffered')
-    }
-
-    const playAtTime = this.audioContext.currentTime + offset
-
-    this.gain.gain.setValueAtTime(gain, playAtTime)
-
-    const source = this.audioContext.createBufferSource()
-    source.buffer = this.sampleAudioBuffer
-    source.connect(this.gain)
-    source.start(playAtTime)
   }
 }

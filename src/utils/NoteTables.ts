@@ -27,9 +27,7 @@ export const notes: Note[] = [
   'B',
 ]
 
-export type Octave = {
-  [note in Note]: number
-}
+export type Octave = Record<Note, number>
 
 export type FrequencyRootName = 'standard' | 'magic' | 'scientific'
 
@@ -39,16 +37,18 @@ export const frequencyRoots: Record<FrequencyRootName, number> = {
   scientific: 430.54,
 }
 
-export const frequencyRootNames: FrequencyRootName[] = Object.keys(frequencyRoots) as FrequencyRootName[]
+export const frequencyRootNames: FrequencyRootName[] = Object.keys(
+  frequencyRoots,
+) as FrequencyRootName[]
 
 export function createNoteTable(
-  startingOctave: number = 0,
-  endingOctave: number = 10,
-  frequency: number = 440,
+  startingOctave = 0,
+  endingOctave = 10,
+  frequency = 440,
 ): Octave[] {
   const noteTable: Octave[] = []
 
-  for (let i = startingOctave; i <= endingOctave; i++) {
+  for (let i: number = startingOctave; i <= endingOctave; i++) {
     noteTable.push({
       C: Math.pow(2, (-57 + i * 12) / 12) * frequency,
       'C#': Math.pow(2, (-56 + i * 12) / 12) * frequency,

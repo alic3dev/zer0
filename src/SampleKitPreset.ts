@@ -1,7 +1,9 @@
+import type { UUID } from 'crypto'
+
 import { Sample } from './Sample'
 
 export interface SampleKitPresetValues {
-  id: string
+  id: UUID
   name: string
   samples: Record<string, Sample>
   gain: { initial?: number; curve?: number[] }
@@ -14,23 +16,43 @@ export interface SampleKitPresetValuesParsed
 }
 
 export class SampleKitPreset implements SampleKitPresetValues {
-  id: SampleKitPresetValues['id'] = crypto.randomUUID()
-  name: SampleKitPresetValues['name'] = 'Basic Kit'
-  samples: SampleKitPresetValues['samples'] = {}
-  gain: SampleKitPresetValues['gain'] = {}
-  channelId: SampleKitPresetValues['channelId']
+  public id: SampleKitPresetValues['id']
+  public name: SampleKitPresetValues['name']
+  public samples: SampleKitPresetValues['samples']
+  public gain: SampleKitPresetValues['gain']
+  public channelId: SampleKitPresetValues['channelId']
 
-  constructor(preset?: Partial<SampleKitPresetValues>) {
-    if (!preset) return
+  static readonly defaultPresetValues: Readonly<SampleKitPresetValues> =
+    Object.freeze({
+      id: crypto.randomUUID(),
+      name: 'Basic Kit',
+      samples: {},
+      gain: {},
+    })
 
-    if (preset.id) this.id = preset.id
-    if (preset.name) this.name = preset.name
-    if (preset.gain) this.gain = preset.gain
-    if (preset.samples) this.samples = preset.samples
-    if (preset.channelId) this.channelId = preset.channelId
+  constructor(preset: Partial<SampleKitPresetValues> = {}) {
+    const _preset: SampleKitPresetValues = {
+      ...SampleKitPreset.getDefaultPresetValues(),
+      ...preset,
+    }
+
+    this.id = _preset.id
+    this.name = _preset.name
+    this.gain = _preset.gain
+    this.samples = _preset.samples
+    this.channelId = _preset.channelId
   }
 
-  asObject(): SampleKitPresetValuesParsed {
+  private static getDefaultPresetValues(): SampleKitPresetValues {
+    return {
+      ...SampleKitPreset.defaultPresetValues,
+      id: crypto.randomUUID(),
+      samples: { ...SampleKitPreset.defaultPresetValues.samples },
+      gain: { ...SampleKitPreset.defaultPresetValues.gain },
+    }
+  }
+
+  public asObject(): SampleKitPresetValuesParsed {
     const res: SampleKitPresetValuesParsed = {
       id: this.id,
       name: this.name,
@@ -51,7 +73,7 @@ export class SampleKitPreset implements SampleKitPresetValues {
     return res
   }
 
-  getJSON(): string {
+  public getJSON(): string {
     return JSON.stringify(this.asObject())
   }
 }

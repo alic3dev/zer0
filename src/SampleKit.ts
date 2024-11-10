@@ -1,3 +1,5 @@
+import type { UUID } from 'crypto'
+
 import { Channel } from './Channel'
 import { Sample } from './Sample'
 import {
@@ -13,31 +15,25 @@ export interface SampleOptions {
 }
 
 export class SampleKit {
+  static localStorageKeyPrefix: string = 'ゼロ：Sample＿Kit：'
+  static baseName: string = 'Kit'
+
   private status: 'configured' | 'configuring' = 'configuring'
   private readonly audioContext: AudioContext
+  private channel?: Channel
   private output: AudioNode
-  private preset: SampleKitPreset
-  private getDefaultPreset(): SampleKitPresetValues {
-    return {
-      id: this.id,
-      name: this.name,
-      gain: {
-        initial: 0,
-      },
-      samples: this.samples,
-    }
-  }
+  private readonly preset: SampleKitPreset
 
-  id: string = crypto.randomUUID()
-  name: string = 'Kit'
+  public id: UUID
+  public name: string
 
-  channel?: Channel
-  readonly gain: GainNode
+  public readonly gain: GainNode
 
-  readonly samples: Record<string, Sample>
+  public readonly samples: Record<string, Sample>
 
   constructor({
     audioContext,
+    id,
     name,
     samples = {},
     channel,
@@ -45,6 +41,7 @@ export class SampleKit {
     savedPreset,
   }: {
     audioContext: AudioContext
+    id?: UUID
     name?: string
     samples?: Record<string, RequestInfo | URL | SampleOptions>
     channel?: Channel
@@ -53,7 +50,8 @@ export class SampleKit {
   }) {
     this.status = 'configuring'
 
-    this.name = name ?? this.name
+    this.id = id ?? crypto.randomUUID()
+    this.name = name ?? SampleKit.baseName
 
     this.audioContext = audioContext
 
@@ -67,8 +65,7 @@ export class SampleKit {
       this.output = audioContext.destination
     }
 
-    this.gain = this.audioContext.createGain()
-    this.gain.gain.value = 1
+    this.gain = new GainNode(this.audioContext, { gain: 1 })
     this.gain.connect(this.output)
 
     this.samples = {}
@@ -97,7 +94,7 @@ export class SampleKit {
     this.name = this.preset.name ?? this.name
 
     for (const sampleKey in samples) {
-      const sample = samples[sampleKey]
+      const sample: RequestInfo | URL | SampleOptions = samples[sampleKey]
 
       this.addSample(sampleKey, sample)
 
@@ -109,7 +106,39 @@ export class SampleKit {
     this.savePreset(false)
   }
 
-  async isReady(): Promise<void> {
+  private getDefaultPreset(): SampleKitPresetValues {
+    return {
+      id: this.id,
+      name: this.name,
+      gain: {
+        initial: 0,
+      },
+      samples: this.samples,
+    }
+  }
+
+  private savePresetDeferHandler?: number
+  public savePreset(defer: boolean = true): void {
+    if (this.savePresetDeferHandler) {
+      clearTimeout(this.savePresetDeferHandler)
+      this.savePresetDeferHandler = undefined
+    }
+
+    const save = (): void => {
+      window.localStorage.setItem(
+        `${SampleKit.localStorageKeyPrefix}${this.id}`,
+        this.preset.getJSON(),
+      )
+    }
+
+    if (defer) {
+      this.savePresetDeferHandler = window.setTimeout(save, 100)
+    } else {
+      save()
+    }
+  }
+
+  public async isReady(): Promise<void> {
     const promises: Promise<void>[] = []
 
     for (const key in this.samples) {
@@ -119,7 +148,7 @@ export class SampleKit {
     await Promise.all<void>(promises)
   }
 
-  isReadySync(): boolean {
+  public isReadySync(): boolean {
     for (const key in this.samples) {
       if (!this.samples[key].isReadySync()) return false
     }
@@ -127,7 +156,7 @@ export class SampleKit {
     return true
   }
 
-  onReady(onReadyCallback: () => void): void {
+  public onReady(onReadyCallback: () => void): void {
     const promises: Promise<void>[] = []
 
     for (const key in this.samples) {
@@ -143,13 +172,17 @@ export class SampleKit {
     Promise.all<void>(promises).then(onReadyCallback)
   }
 
-  setOutput(output: AudioNode): void {
+  public setOutput(output: AudioNode): void {
     this.gain.disconnect(this.output)
     this.output = output
     this.gain.connect(this.output)
   }
 
-  setChannel(channel: Channel): void {
+  public getChannel(): Channel | undefined {
+    return this.channel
+  }
+
+  public setChannel(channel: Channel): void {
     this.channel = channel
     this.setOutput(this.channel.destination)
 
@@ -159,7 +192,10 @@ export class SampleKit {
     }
   }
 
-  addSample(sampleKey: string, sample: RequestInfo | URL | SampleOptions) {
+  public addSample(
+    sampleKey: string,
+    sample: RequestInfo | URL | SampleOptions,
+  ) {
     let gain: number = 1
     let output: AudioNode | undefined = this.gain
     let input: RequestInfo | URL = sample as RequestInfo | URL
@@ -174,11 +210,14 @@ export class SampleKit {
       input = sample.input ?? input
     }
 
-    const sampleGain: GainNode = this.audioContext.createGain()
-    sampleGain.gain.value = gain
+    const sampleGain: GainNode = new GainNode(this.audioContext, { gain })
     sampleGain.connect(output)
 
-    this.samples[sampleKey] = new Sample(this.audioContext, input, sampleGain)
+    this.samples[sampleKey] = new Sample({
+      audioContext: this.audioContext,
+      input,
+      output: sampleGain,
+    })
 
     if (this.preset) {
       this.preset.samples[sampleKey] = this.samples[sampleKey]
@@ -190,7 +229,7 @@ export class SampleKit {
   }
 
   // FIXME: These params are weird
-  play(
+  public play(
     offset: number = 0,
     ...sampleKeys: (string | { name: string; gain?: number })[]
   ): void {
@@ -211,30 +250,7 @@ export class SampleKit {
     }
   }
 
-  getPresetJSON(): string {
+  public getPresetJSON(): string {
     return this.preset.getJSON()
   }
-
-  private savePresetDeferHandler?: number
-  savePreset(defer: boolean = true): void {
-    if (this.savePresetDeferHandler) {
-      clearTimeout(this.savePresetDeferHandler)
-      this.savePresetDeferHandler = undefined
-    }
-
-    const save = (): void => {
-      window.localStorage.setItem(
-        `${SampleKit.localStorageKeyPrefix}${this.id}`,
-        this.preset.getJSON(),
-      )
-    }
-
-    if (defer) {
-      this.savePresetDeferHandler = window.setTimeout(save, 100)
-    } else {
-      save()
-    }
-  }
-
-  static localStorageKeyPrefix: string = 'ゼロ：Sample＿Kit：'
 }

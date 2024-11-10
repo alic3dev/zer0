@@ -3,9 +3,9 @@ import type { UUID } from 'crypto'
 import { AutomatableParameter } from '../../AutomatableParameter'
 import { Effect } from '../../Effect'
 
-export class DelayReverb extends Effect {
-  static baseName: string = 'Delay Reverb'
-  static id: UUID = 'd8e211fe-c12a-4f6b-be51-c58a01fc6472'
+export class Delay extends Effect {
+  static baseName: string = 'Delay'
+  static id: UUID = 'e3205c20-3409-4b10-8a28-6e80f8f2304b'
 
   static readonly MAX_DELAY_TIME: number = 179
 
@@ -17,7 +17,7 @@ export class DelayReverb extends Effect {
   constructor({
     audioContext,
     id,
-    name = 'Delay Reverb',
+    name = Delay.baseName,
     output = audioContext.destination,
   }: {
     audioContext: AudioContext
@@ -27,11 +27,9 @@ export class DelayReverb extends Effect {
   }) {
     super({ audioContext, output, id, name })
 
-    this.output = output
-
     this.delayNode = new DelayNode(this.audioContext, {
-      delayTime: this.getUsableDelayTime(),
-      maxDelayTime: DelayReverb.MAX_DELAY_TIME,
+      delayTime: this.delayTime,
+      maxDelayTime: Delay.MAX_DELAY_TIME,
     })
     this.decayGainNode = new GainNode(this.audioContext, {
       gain: this.decayAmount,
@@ -68,19 +66,16 @@ export class DelayReverb extends Effect {
     return this.delayTime
   }
 
-  public getUsableDelayTime(delayTime: number = this.delayTime): number {
-    return (60 * delayTime) / this.BPMSync.getUsableBPM()
-  }
-
   public setDelayTime(delayTime: number): void {
-    if (delayTime > DelayReverb.MAX_DELAY_TIME) {
-      delayTime = DelayReverb.MAX_DELAY_TIME
+    if (delayTime > Delay.MAX_DELAY_TIME) {
+      delayTime = Delay.MAX_DELAY_TIME
     } else if (delayTime < 0) {
       delayTime = 0
     }
 
     this.delayTime = delayTime
-    this.delayNode.delayTime.value = this.getUsableDelayTime()
+    this.delayNode.delayTime.value =
+      (60 * this.delayTime) / this.BPMSync.getUsableBPM()
   }
 
   public getDecayAmount(): number {
