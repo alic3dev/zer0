@@ -5,6 +5,7 @@ import { Effect } from '../../Effect'
 
 export class Delay extends Effect {
   static baseName: string = 'Delay'
+  static id: UUID = 'e3205c20-3409-4b10-8a28-6e80f8f2304b'
 
   static readonly MAX_DELAY_TIME: number = 179
 
