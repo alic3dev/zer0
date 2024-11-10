@@ -5,6 +5,7 @@ import { Effect } from '../../Effect'
 
 export class DelayReverb extends Effect {
   static baseName: string = 'Delay Reverb'
+  static id: UUID = 'd8e211fe-c12a-4f6b-be51-c58a01fc6472'
 
   static readonly MAX_DELAY_TIME: number = 179
 
