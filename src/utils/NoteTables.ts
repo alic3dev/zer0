@@ -27,9 +27,7 @@ export const notes: Note[] = [
   'B',
 ]
 
-export type Octave = {
-  [note in Note]: number
-}
+export type Octave = Record<Note, number>
 
 export type FrequencyRootName = 'standard' | 'magic' | 'scientific'
 
