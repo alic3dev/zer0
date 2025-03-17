@@ -1,0 +1,25 @@
+name: continuous_integration_build
+on:
+  - push
+  - pull_request
+jobs:
+  continuous_integration_build:
+    runs-on: ubuntu-latest
+    env:
+      node_version: current
+    steps:
+      - name: repository:checkout
+        uses: actions/checkout@v4
+      - name: pnpm:setup
+        uses: pnpm/action-setup@v4
+      - name: node_setup<${{ env.node_version }}>
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.node_version }}
+          cache: 'pnpm'
+      - name: pnpm:install
+        run: pnpm i
+      - name: pnpm:lint
+        run: pnpm lint
+      - name: pnpm:build
+        run: pnpm build
